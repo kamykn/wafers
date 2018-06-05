@@ -1,0 +1,9 @@
+[package]
+name = "wasm-fzf"
+version = "0.1.0"
+authors = ["kmszk <kmszk.kent@gmail.com>"]
+
+[dependencies]
+
+[lib]
+crate-type = ["cdylib"]
