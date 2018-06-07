@@ -1,14 +1,9 @@
-#[macro_use]
-extern crate stdweb;
-
 static mut FOUND_WORD_LIST: &'static mut [&'static str] = &mut [];
 
 #[no_mangle]
-pub extern "C" fn search(inputWord: String, searchList: &'static [&'static str]) -> *const &str {
+pub extern "C" fn search(inputWord: String, searchList: &'static [&'static str]) -> &'static str {
     let check = &inputWord;
-    js! {
-        console.log(@{check});
-    }
+    return &searchList[0];
     for inputChar in inputWord.chars() {
         let mut index = 0;
         for mut searchWord in searchList.iter() {
