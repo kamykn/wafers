@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["kmszk <kmszk.kent@gmail.com>"]
 
 [dependencies]
+stdweb = "*"
 
 [lib]
 crate-type = ["cdylib"]
