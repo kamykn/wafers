@@ -31,18 +31,19 @@ fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
 		var fzf = results.instance.exports;
 
 		let rustUtils = new RustUtils(results.instance);
-		const searchWordOp = rustUtils.copyJsStringToMemory("a");
 		const searchWordListOp = rustUtils.copyJsStringToMemory(JSON.stringify({list: ["aaaa","bbb","ccc"]}));
+		fzf.setSearchList(searchWordListOp);
 
-		const offset = fzf.wazf(searchWordOp, searchWordListOp);
+		const searchWordOp = rustUtils.copyJsStringToMemory("a");
+		const offset = fzf.wazf(searchWordOp);
+		const len = fzf.get_len();
 		console.log(results.instance.exports.memory);
 		console.log(offset);
-		let len = 400;
+		console.log(len);
 		const stringBuffer = new Uint8Array(fzf.memory.buffer, offset, len);
 		console.log(stringBuffer);
 		let str = '';
 		for (let i = 0; i < stringBuffer.length; i++) {
-			console.log(String.fromCharCode(stringBuffer[i]));
 			str += String.fromCharCode(stringBuffer[i]);
 		}
 		console.log(str);
