@@ -24,28 +24,45 @@ class RustUtils {
 
 }
 
-fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
-	.then(response => response.arrayBuffer())
-	.then(bytes => WebAssembly.instantiate(bytes, {}))
-	.then(results => {
-		var fzf = results.instance.exports;
 
-		let rustUtils = new RustUtils(results.instance);
-		const searchWordListOp = rustUtils.copyJsStringToMemory(JSON.stringify({list: ["aaaa","bbb","ccc"]}));
-		fzf.setSearchList(searchWordListOp);
+class WAZF {
+	constructor(results) {
+		this.wazf = results.instance.exports;
+		this.rustUtils = new RustUtils(results.instance);
+		this.rustUtils = new RustUtils(results.instance);
+	}
 
-		const searchWordOp = rustUtils.copyJsStringToMemory("a");
-		const offset = fzf.wazf(searchWordOp);
-		const len = fzf.get_len();
-		console.log(results.instance.exports.memory);
-		console.log(offset);
-		console.log(len);
-		const stringBuffer = new Uint8Array(fzf.memory.buffer, offset, len);
-		console.log(stringBuffer);
+
+	setSearchWordList(searchWordList) {
+		const searchWordListOp = this.rustUtils.copyJsStringToMemory(JSON.stringify({list: searchWordList}));
+		this.wazf.setSearchWordList(searchWordListOp);
+	}
+
+	search(inputWord) {
+		let searchWordOp = this.rustUtils.copyJsStringToMemory(inputWord);
+		const offset = this.wazf.wazf(searchWordOp);
+		const len = this.wazf.get_len();
+		const stringBuffer = new Uint8Array(this.wazf.memory.buffer, offset, len);
 		let str = '';
 		for (let i = 0; i < stringBuffer.length; i++) {
 			str += String.fromCharCode(stringBuffer[i]);
 		}
 		console.log(str);
+	}
+
+}
+
+fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
+	.then(response => response.arrayBuffer())
+	.then(bytes => WebAssembly.instantiate(bytes, {}))
+	.then(results => {
+		main(results);
 	});
+
+let wazf;
+function main(results) {
+	const wazf = new WAZF(results);
+	wazf.setSearchWordList(["aaa", "bbb", "ccc"]);
+	wazf.search("a");
+}
 
