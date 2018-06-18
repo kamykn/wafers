@@ -27,7 +27,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn setSearchList(word_list_i_str: js_string_utils::JsInteropString) {
+pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_string_utils::JsInteropString) {
     let word_list_json = word_list_i_str.into_boxed_string();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json).unwrap(); 
     for word in word_list_obj.list {
