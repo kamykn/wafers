@@ -21,6 +21,13 @@ struct WordList {
     list: Vec<String>
 }
 
+#[derive(Clone, PartialEq, PartialOrd)]
+struct WordScoring {
+    score: u8,
+    word: String,
+}
+
+
 lazy_static! {
     static ref SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
     static ref SEARCH_RESULT_JSON_LEN: Mutex<u32> = Mutex::new(0);
@@ -73,27 +80,84 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
 }
 
 fn search(inputWord: String) -> Vec<String> {
-    let mut found_word_list: Vec<String> = Vec::new();
+    let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
     for inputChar in inputWord.chars() {
-        for mut searchWord in SEARCH_WORD_LIST.lock().unwrap().iter() {
+        for mut word in SEARCH_WORD_LIST.lock().unwrap().iter() {
             let mut score = 0;
-            for searchChar in searchWord.chars() {
+            for searchChar in word.chars() {
                 if inputChar == searchChar {
                     score = score + 1;
                 }
             }
 
             if score > 1 {
-                found_word_list.push(searchWord.to_string());
+                let word_scoring = WordScoring{
+                    score,
+                    word: word.to_string()
+                };
+                word_scoreing_list.push(word_scoring);
             }
         }
     }
 
-    return found_word_list
+    sort(&mut word_scoreing_list);
+    let mut sorted_found_word_list: Vec<String> = Vec::new();
+    for word_scoreing in word_scoreing_list {
+        sorted_found_word_list.push(word_scoreing.word);
+    }
+
+    return sorted_found_word_list
 }
+
+// fn isRankin(score, current_ranking) {
+//     // minをstaticにしたい
+//     // min より低ければ圏外
+//     if  {
+// 
+//     }
+// 
+//     // すでにランクがN件以上かつminと=なら圏外
+//     
+//     // ランクイン
+//     (rank, current_ranking)
+// 
+// }
 
 fn set_len(str_for_set_len: &String) {
     let mut search_result_json_len = SEARCH_RESULT_JSON_LEN.lock().unwrap();
     let found_word_list_json_len = str_for_set_len.len() as u32;
     *search_result_json_len = found_word_list_json_len;
 }
+
+fn sort<T: PartialOrd + Clone>(source: &mut [T]) {
+    fn q_sort<TInner: PartialOrd + Clone>(source: &mut [TInner], left: usize, right: usize) {
+        let pivot = source[(left + right) >> 1].clone();
+        let mut l = left;
+        let mut r = right;
+        while l <= r {
+            while pivot < source[r] && r > left {
+                r -= 1;
+            }
+            while source[l] < pivot && l < right {
+                l += 1;
+            }
+            if l <= r {
+                source.swap(l, r);
+                if r > 0 {
+                    r -= 1;
+                }
+                l += 1;
+            }
+        }
+        if left < r {
+            q_sort(source, left, r);
+        }
+        if right > l {
+            q_sort(source, l, right);
+        }
+    }
+
+    let size = source.len() - 1;
+    q_sort(source, 0, size);
+}
+
