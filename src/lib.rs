@@ -12,6 +12,7 @@ extern crate serde_derive;
 extern crate lazy_static;
 
 use std::os::raw::c_char;
+use std::cmp::Ordering;
 use std::ffi::CString;
 use std::sync::Mutex;
 use std::str;
@@ -21,10 +22,22 @@ struct WordList {
     list: Vec<String>
 }
 
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Clone)]
 struct WordScoring {
     score: u8,
     word: String,
+}
+
+impl PartialOrd for WordScoring {
+    fn partial_cmp(&self, other: &WordScoring) -> Option<Ordering> {
+        self.score.partial_cmp(&other.score)
+    }
+}
+
+impl PartialEq for WordScoring {
+    fn eq(&self, other: &WordScoring) -> bool {
+        self.score == other.score
+    }
 }
 
 
