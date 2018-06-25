@@ -94,22 +94,23 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
 
 fn search(inputWord: String) -> Vec<String> {
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
-    for inputChar in inputWord.chars() {
-        for mut word in SEARCH_WORD_LIST.lock().unwrap().iter() {
-            let mut score = 0;
-            for searchChar in word.chars() {
+    for mut word in SEARCH_WORD_LIST.lock().unwrap().iter() {
+        let mut score = 0;
+        for searchChar in word.chars() {
+            for inputChar in inputWord.chars() {
                 if inputChar == searchChar {
                     score = score + 1;
+                    break;
                 }
             }
+        }
 
-            if score > 1 {
-                let word_scoring = WordScoring{
-                    score,
-                    word: word.to_string()
-                };
-                word_scoreing_list.push(word_scoring);
-            }
+        if score > 1 {
+            let word_scoring = WordScoring{
+                score,
+                word: word.to_string()
+            };
+            word_scoreing_list.push(word_scoring);
         }
     }
 
