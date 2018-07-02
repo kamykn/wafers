@@ -92,17 +92,30 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
     s.as_string().len()
 }
 
-fn search(inputWord: String) -> Vec<String> {
+fn search(input_word: String) -> Vec<String> {
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
+
     for mut word in SEARCH_WORD_LIST.lock().unwrap().iter() {
         let mut score = 0;
-        for searchChar in word.chars() {
-            for inputChar in inputWord.chars() {
-                if inputChar == searchChar {
-                    score = score + 1;
+        let mut before_word_matched_at = 0;
+
+        for (i, input_char) in input_word.chars().enumerate() {
+            for search_char in word.chars()  {
+            let mut add_score = 1;
+                if input_char == search_char {
+                    if i == before_word_matched_at + 1 {
+                        // 連続したMatchには加点
+                        add_score = add_score + 1;
+                    }
+
+                    score = score + add_score;
+                    before_word_matched_at = i;
                     break;
                 }
             }
+
+            // 見つからなかった
+            before_word_matched_at = 0;
         }
 
         if score > 1 {
