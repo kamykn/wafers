@@ -24,7 +24,7 @@ struct WordList {
 
 #[derive(Clone)]
 struct WordScoring {
-    score: u8,
+    score: i32,
     word: String,
 }
 
@@ -44,6 +44,7 @@ impl PartialEq for WordScoring {
 lazy_static! {
     static ref SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
     static ref SEARCH_RESULT_JSON_LEN: Mutex<u32> = Mutex::new(0);
+    static ref RETURN_MATCH_LIST_NUM: Mutex<u32> = Mutex::new(30);
 }
 
 #[no_mangle]
@@ -56,11 +57,23 @@ pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_string_utils::JsI
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn setReturnMatchListNum(len: u32) {
+    let mut return_match_list_num = RETURN_MATCH_LIST_NUM.lock().unwrap();
+    *return_match_list_num = len;
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) -> *mut c_char {
     let search_str = search_i_str.into_boxed_string();
+    let word_scoreing_list = search(search_str.to_string());
 
-    let result = search(search_str.to_string());
-    let found_word_list = WordList{list: result};
+    let mut word_list_list: Vec<String> = Vec::new();
+    let result_len = *SEARCH_RESULT_JSON_LEN.lock().unwrap() as usize;
+    let sliced_word_scoreling_list = &word_scoreing_list[..result_len];
+    for word_scorering in sliced_word_scoreling_list {
+        word_list_list.push(word_scorering.word.to_string());
+    }
+    let found_word_list = WordList{list: word_list_list};
 
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
 
@@ -92,33 +105,49 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
     s.as_string().len()
 }
 
-fn search(input_word: String) -> Vec<String> {
+// FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
+fn search(input_word: String) -> Vec<WordScoring> {
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
 
     for mut word in SEARCH_WORD_LIST.lock().unwrap().iter() {
-        let mut score = 0;
-        let mut before_word_matched_at = 0;
+        let mut debug_str: String = "".to_string();
+        let mut score: i32 = 0;
+        let mut add_score: i32 = 1;
+        let mut next_word_matched_at = 0;
+        let mut is_all_match = true;
 
-        for (i, input_char) in input_word.chars().enumerate() {
-            for search_char in word.chars()  {
-            let mut add_score = 1;
+        for input_char in input_word.chars() {
+            let mut is_found = false;
+
+            for (i, search_char) in word.chars().enumerate()  {
                 if input_char == search_char {
-                    if i == before_word_matched_at + 1 {
+                    if i == next_word_matched_at {
                         // 連続したMatchには加点
                         add_score = add_score + 1;
+                    } else {
+                        // 加点戻し
+                        add_score = 1;
                     }
 
+                    debug_str = debug_str + " + " + &i.to_string() + ":" + &next_word_matched_at.to_string() + ":" + &add_score.to_string();
                     score = score + add_score;
-                    before_word_matched_at = i;
+                    next_word_matched_at = i + 1;
+                    is_found = true;
                     break;
                 }
             }
 
-            // 見つからなかった
-            before_word_matched_at = 0;
+            if !is_found {
+                is_all_match = false;
+                break;
+            }
         }
 
-        if score > 1 {
+        if is_all_match {
+            // 検索対象 - 入力で必ず自然数に
+            let len_diff = (word.len() - input_word.len()) as i32;
+            score = score - len_diff;
+
             let word_scoring = WordScoring{
                 score,
                 word: word.to_string()
@@ -128,12 +157,7 @@ fn search(input_word: String) -> Vec<String> {
     }
 
     sort(&mut word_scoreing_list);
-    let mut sorted_found_word_list: Vec<String> = Vec::new();
-    for word_scoreing in word_scoreing_list {
-        sorted_found_word_list.push(word_scoreing.word);
-    }
-
-    return sorted_found_word_list
+    return word_scoreing_list;
 }
 
 // fn isRankin(score, current_ranking) {
