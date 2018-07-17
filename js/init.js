@@ -38,6 +38,10 @@ class WAZF {
 		this.wazf.setSearchWordList(searchWordListOp);
 	}
 
+	setReturnMatchListNum(returnMatchListNum) {
+		this.wazf.setReturnMatchListNum(returnMatchListNum);
+	}
+
 	search(inputWord) {
 		let searchWordOp = this.rustUtils.copyJsStringToMemory(inputWord);
 		const offset = this.wazf.wazf(searchWordOp);
@@ -63,6 +67,7 @@ let wazf;
 function main(results) {
 	wazf = new WAZF(results);
 	wazf.setSearchWordList(wordlist);
+	wazf.setReturnMatchListNum(20);
 	wazf.search("a");
 }
 

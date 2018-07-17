@@ -67,13 +67,21 @@ pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) ->
     let search_str = search_i_str.into_boxed_string();
     let word_scoreing_list = search(search_str.to_string());
 
-    let mut word_list_list: Vec<String> = Vec::new();
-    let result_len = *SEARCH_RESULT_JSON_LEN.lock().unwrap() as usize;
-    let sliced_word_scoreling_list = &word_scoreing_list[..result_len];
-    for word_scorering in sliced_word_scoreling_list {
-        word_list_list.push(word_scorering.word.to_string());
+    let mut found_word_list = WordList{list: Vec::new()};
+
+    // TODO デフォルト
+    let return_match_list_num = *RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
+
+    if word_scoreing_list.len() > 0 {
+        let mut word_list_list: Vec<String> = Vec::new();
+        let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
+
+        for word_scorering in sliced_word_scoreling_list {
+            word_list_list.push(word_scorering.word.to_string());
+        }
+
+        found_word_list.list = word_list_list;
     }
-    let found_word_list = WordList{list: word_list_list};
 
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
 
@@ -156,7 +164,10 @@ fn search(input_word: String) -> Vec<WordScoring> {
         }
     }
 
-    sort(&mut word_scoreing_list);
+    if word_scoreing_list.len() > 1 {
+        sort(&mut word_scoreing_list);
+    }
+
     return word_scoreing_list;
 }
 
@@ -200,10 +211,10 @@ fn sort<T: PartialOrd + Clone>(source: &mut [T]) {
                 l += 1;
             }
         }
-        if left < r {
+        if left > r {
             q_sort(source, left, r);
         }
-        if right > l {
+        if right < l {
             q_sort(source, l, right);
         }
     }
