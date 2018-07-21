@@ -1,42 +1,14 @@
-'use strict';
-
-// fuzzysearch
-// https://github.com/bevacqua/fuzzysearch/blob/master/index.js 
-
-function fuzzysearch (needle, haystack) {
-  var hlen = haystack.length;
-  var nlen = needle.length;
-  if (nlen > hlen) {
-    return false;
-  }
-  if (nlen === hlen) {
-    return needle === haystack;
-  }
-  outer: for (var i = 0, j = 0; i < nlen; i++) {
-    var nch = needle.charCodeAt(i);
-    while (j < hlen) {
-      if (haystack.charCodeAt(j++) === nch) {
-        continue outer;
-      }
-    }
-    return false;
-  }
-  return true;
-}
-
-
 document.getElementById("search").addEventListener('keyup',function(){
 	const value = document.getElementById("search").value;
 
 	console.log(value); // 検索ワード
 	const startTime = performance.now(); // 開始時間
-	// スコア取れない…
-	let foundList = [];
-	list.forEach(function (word) {
-		if (fuzzysearch(value, word)) {
-			foundList.push(word);
-		}
-	});
+
+	let options = {};
+	let fuse = new Fuse(list, options)
+	let result = fuse.search(value);
+
+
 	const endTime = performance.now(); // 終了時間
 	console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
 
@@ -51,10 +23,10 @@ document.getElementById("search").addEventListener('keyup',function(){
 		}
 	}
 
-	foundList.forEach (function(word) {
+	result.forEach (function(key) {
 		let $li = document.createElement('li');
 		$li.classList.add('result-field-li');
-		let wordNode = document.createTextNode(word);
+		let wordNode = document.createTextNode(list[key]);
 		$li.appendChild(wordNode);
 		$resultField.appendChild($li); // fragmentの追加する
 	});

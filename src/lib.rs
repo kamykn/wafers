@@ -127,6 +127,9 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
 fn search(mut input_word: String) -> Vec<WordScoring> {
+    // 高速化アイデア
+    // 毎回入力された値を頭から検索しているので、ワードが同じであればキャッシュに詰める
+
     // TODO: オプション化
     input_word = input_word.to_lowercase();
 
