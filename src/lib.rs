@@ -148,6 +148,8 @@ fn search(mut input_word: String) -> Vec<WordScoring> {
             continue;
         }
 
+        // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
+
         // TODO: オプション化
         let mut word_for_search = word.to_lowercase();
         for input_char in input_word.chars() {
