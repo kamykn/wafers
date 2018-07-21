@@ -57,7 +57,6 @@ class WAZF {
 			jsonStr += String.fromCharCode(stringBuffer[i]);
 		}
 
-		console.log(jsonStr);
 		return JSON.parse(jsonStr);
 	}
 
@@ -83,21 +82,17 @@ function main(results) {
 document.getElementById("wasm-fzf").addEventListener('keyup',function(){
 	let dt = new Date();
 	let id = '' + dt.getMinutes() + dt.getSeconds();
-	console.log('start:' + id);
 	const value = document.getElementById("wasm-fzf").value;
 	const result = wazf.search(value);
 
-	if (result == null) {
-		console.log('result none');
-	}
-
-	// TODO: バグバグしてる
 	const $resultField = document.getElementById('result-field');
 	const $resultFieldWord = document.getElementsByClassName('result-field-li');
 
 	if ($resultFieldWord.length > 0) {
-		for ($i = 0; $i < $resultFieldWord.length; $i++) {
-			$resultField.removeChild($resultFieldWord[$i]);
+		let len = $resultFieldWord.length;
+		for ($i = 0; $i < len; $i++) {
+			// 要素が減っていくため0個目を削除
+			$resultField.removeChild($resultFieldWord[0]);
 		}
 	}
 
@@ -108,8 +103,6 @@ document.getElementById("wasm-fzf").addEventListener('keyup',function(){
 		$li.appendChild(wordNode);
 		$resultField.appendChild($li); // fragmentの追加する
 	});
-	console.log('end:' + id);
-
 });
 
 
