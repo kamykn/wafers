@@ -53,6 +53,7 @@ lazy_static! {
 
 #[no_mangle]
 pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_string_utils::JsInteropString) {
+    // TODO: 脱JSON http://ykicisk.hatenablog.com/entry/2017/04/30/195824
     let word_list_json = word_list_i_str.into_boxed_string();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json).unwrap(); 
     for word in word_list_obj.list {
@@ -92,6 +93,7 @@ pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) ->
         found_word_list.list = word_list_list;
     }
 
+    // TODO: 脱JSON http://ykicisk.hatenablog.com/entry/2017/04/30/195824
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
     let len = found_word_list_json.len() as u32;
     set_len(len);
@@ -124,7 +126,10 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
 }
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
-fn search(input_word: String) -> Vec<WordScoring> {
+fn search(mut input_word: String) -> Vec<WordScoring> {
+    // TODO: オプション化
+    input_word = input_word.to_lowercase();
+
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
 
     if input_word.len() == 0 {
@@ -143,7 +148,8 @@ fn search(input_word: String) -> Vec<WordScoring> {
             continue;
         }
 
-        let mut word_for_search = word.to_string();
+        // TODO: オプション化
+        let mut word_for_search = word.to_lowercase();
         for input_char in input_word.chars() {
             let mut is_found = false;
 
@@ -189,6 +195,7 @@ fn search(input_word: String) -> Vec<WordScoring> {
         }
     }
 
+    // TODO: オプション化
     if word_scoreing_list.len() > 1 {
         sort(&mut word_scoreing_list);
     }
@@ -196,6 +203,7 @@ fn search(input_word: String) -> Vec<WordScoring> {
     return word_scoreing_list;
 }
 
+// TODO: スコアがランクに満たない場合早々に切ってしまいたい
 // fn isRankin(score, current_ranking) {
 //     // minをstaticにしたい
 //     // min より低ければ圏外
