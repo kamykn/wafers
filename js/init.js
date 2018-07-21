@@ -45,13 +45,19 @@ class WAZF {
 	search(inputWord) {
 		let searchWordOp = this.rustUtils.copyJsStringToMemory(inputWord);
 		const offset = this.wazf.wazf(searchWordOp);
+
 		const len = this.wazf.get_len();
+		if (len == 0) {
+			return null;
+		}
+
 		const stringBuffer = new Uint8Array(this.wazf.memory.buffer, offset, len);
 		let jsonStr = '';
 		for (let i = 0; i < stringBuffer.length; i++) {
 			jsonStr += String.fromCharCode(stringBuffer[i]);
 		}
 
+		console.log(jsonStr);
 		return JSON.parse(jsonStr);
 	}
 
@@ -59,10 +65,13 @@ class WAZF {
 
 fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
 	.then(response => response.arrayBuffer())
-	.then(bytes => WebAssembly.instantiate(bytes, {}))
+	.then(bytes => WebAssembly.instantiate(bytes, {env: {
+		logout: console.log,
+	}}))
 	.then(results => {
 		main(results);
 	});
+
 
 let wazf;
 function main(results) {
@@ -72,8 +81,15 @@ function main(results) {
 }
 
 document.getElementById("wasm-fzf").addEventListener('keyup',function(){
+	let dt = new Date();
+	let id = '' + dt.getMinutes() + dt.getSeconds();
+	console.log('start:' + id);
 	const value = document.getElementById("wasm-fzf").value;
 	const result = wazf.search(value);
+
+	if (result == null) {
+		console.log('result none');
+	}
 
 	// TODO: バグバグしてる
 	const $resultField = document.getElementById('result-field');
@@ -92,6 +108,7 @@ document.getElementById("wasm-fzf").addEventListener('keyup',function(){
 		$li.appendChild(wordNode);
 		$resultField.appendChild($li); // fragmentの追加する
 	});
+	console.log('end:' + id);
 
 });
 

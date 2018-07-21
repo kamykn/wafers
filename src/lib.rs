@@ -1,4 +1,3 @@
-#![feature(repr_transparent)]
 #![feature(const_vec_new)]
 mod js_string_utils;
 
@@ -10,6 +9,11 @@ extern crate serde_derive;
 
 #[macro_use]
 extern crate lazy_static;
+
+// import from js
+extern {
+    fn logout(n: i32);
+}
 
 use std::os::raw::c_char;
 use std::cmp::Ordering;
@@ -72,7 +76,8 @@ pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) ->
     // TODO デフォルト
     let return_match_list_num = *RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
 
-    if word_scoreing_list.len() > 0 {
+    logout(word_scoreing_list.len() as i32);
+    if word_scoreing_list.len() as i32 > 0 && word_scoreing_list.len() > return_match_list_num {
         let mut word_list_list: Vec<String> = Vec::new();
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
@@ -84,8 +89,9 @@ pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) ->
     }
 
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
+    let len = found_word_list_json.len() as u32;
+    set_len(len);
 
-    set_len(&found_word_list_json);
     let found_word_list_json_cstring = CString::new(found_word_list_json).unwrap();
     found_word_list_json_cstring.into_raw()
 }
@@ -117,18 +123,25 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
 fn search(input_word: String) -> Vec<WordScoring> {
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
 
-    for mut word in SEARCH_WORD_LIST.lock().unwrap().iter() {
+    let search_word_list = SEARCH_WORD_LIST.lock().unwrap();
+    for mut word in search_word_list.iter() {
         let mut debug_str: String = "".to_string();
         let mut score: i32 = 0;
         let mut add_score: i32 = 1;
         let mut next_word_matched_at = 0;
         let mut is_all_match = true;
 
+        if word.len() < input_word.len() {
+            continue;
+        }
+
+        let mut word_for_search = word.to_string();
         for input_char in input_word.chars() {
             let mut is_found = false;
 
-            for (i, search_char) in word.chars().enumerate()  {
-                if input_char == search_char {
+            for (i, search_char) in word_for_search.chars().enumerate()  {
+                // TODO スペースが来たら離れたところのほうが加点高くする
+                if input_char == search_char && input_char != ' ' {
                     if i == next_word_matched_at {
                         // 連続したMatchには加点
                         add_score = add_score + 1;
@@ -147,7 +160,11 @@ fn search(input_word: String) -> Vec<WordScoring> {
 
             if !is_found {
                 is_all_match = false;
+
                 break;
+            } else {
+                // 2重matchをしないように考慮
+                word_for_search.remove(next_word_matched_at - 1);
             }
         }
 
@@ -185,9 +202,9 @@ fn search(input_word: String) -> Vec<WordScoring> {
 // 
 // }
 
-fn set_len(str_for_set_len: &String) {
+fn set_len(len: u32) {
     let mut search_result_json_len = SEARCH_RESULT_JSON_LEN.lock().unwrap();
-    let found_word_list_json_len = str_for_set_len.len() as u32;
+    let found_word_list_json_len = len;
     *search_result_json_len = found_word_list_json_len;
 }
 
