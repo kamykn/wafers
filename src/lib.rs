@@ -127,6 +127,10 @@ pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize
 fn search(input_word: String) -> Vec<WordScoring> {
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
 
+    if input_word.len() == 0 {
+        return word_scoreing_list;
+    }
+
     let search_word_list = SEARCH_WORD_LIST.lock().unwrap();
     for mut word in search_word_list.iter() {
         let mut debug_str: String = "".to_string();
@@ -173,13 +177,13 @@ fn search(input_word: String) -> Vec<WordScoring> {
         }
 
         if is_all_match {
-            // 検索対象 - 入力で必ず自然数に
             let len_diff = (word.len() - input_word.len()) as i32;
             score = score - len_diff;
 
             let word_scoring = WordScoring{
                 score,
                 word: word.to_string()
+                // word: word.to_string() + &score.to_string() // for scoring debug
             };
             word_scoreing_list.push(word_scoring);
         }
@@ -221,25 +225,25 @@ fn sort<T: PartialOrd + Clone>(source: &mut [T]) {
         let pivot = source[(left + right) >> 1].clone();
         let mut l = left;
         let mut r = right;
-        while l >= r {
-            while pivot < source[r] && r > left {
-                r += 1;
+        while l <= r {
+            while pivot > source[r] && r > left {
+                r -= 1;
             }
-            while source[l] < pivot && l < right {
-                l -= 1;
+            while source[l] > pivot && l < right {
+                l += 1;
             }
             if l <= r {
                 source.swap(l, r);
                 if r > 0 {
-                    r += 1;
+                    r -= 1;
                 }
-                l -= 1;
+                l += 1;
             }
         }
-        if left > r {
+        if left < r {
             qr_sort(source, left, r);
         }
-        if right < l {
+        if right > l {
             qr_sort(source, l, right);
         }
     }
