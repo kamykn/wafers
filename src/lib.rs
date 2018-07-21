@@ -74,11 +74,15 @@ pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) ->
     let mut found_word_list = WordList{list: Vec::new()};
 
     // TODO デフォルト
-    let return_match_list_num = *RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
+    let mut return_match_list_num = *RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
 
-    logout(word_scoreing_list.len() as i32);
-    if word_scoreing_list.len() as i32 > 0 && word_scoreing_list.len() > return_match_list_num {
+    if word_scoreing_list.len() as i32 > 0 {
+        if word_scoreing_list.len() < return_match_list_num {
+            return_match_list_num = word_scoreing_list.len();
+        }
         let mut word_list_list: Vec<String> = Vec::new();
+
+        // TODO 無駄にsliceする場合あり
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
         for word_scorering in sliced_word_scoreling_list {
