@@ -1,6 +1,11 @@
 use std::cmp::Ordering;
 use std::sync::Mutex;
 
+// import from js
+extern {
+    fn logout(n: i32);
+}
+
 lazy_static! {
     // 今までのwordはキャッシュ持つ
     // 一文字追加されただけなどの状況がわかればキャッシュの続きから検索する。
@@ -8,11 +13,11 @@ lazy_static! {
     // 消される可能性があるのは単語末尾だけではない。単語真ん中もありうる。
 
     // key: 検索語のindex, value: 検索結果キャッシュ
-    pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<WordScoring>> = Mutex::new(vec![]);
+    pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<Vec<WordScoring>>> = Mutex::new(vec![]);
     // 検索ワード
     pub static ref BEFORE_SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
 
-    pub static ref SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
+    pub static ref SEARCH_WORD_LIST: Mutex<Vec<WordScoring>> = Mutex::new(vec![]);
     pub static ref SEARCH_RESULT_JSON_LEN: Mutex<u32> = Mutex::new(0);
     pub static ref RETURN_MATCH_LIST_NUM: Mutex<u32> = Mutex::new(30);
 }
@@ -43,6 +48,27 @@ fn delete_cache() {
 pub fn search(mut input_word: String) -> Vec<WordScoring> {
     // 高速化アイデア
     // 毎回入力された値を頭から検索しているので、ワードが同じであればキャッシュに詰める
+    
+    // キャッシュ化ここから
+    let mut is_cache_found = false;
+    let mut cache_index = 0;
+    let mut before_search_word_list = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
+    if before_search_word_list.len() as i32 > 0 {
+        let mut input_history = String::new();
+        for input_char in input_word.chars() {
+            input_history.push(input_char);
+            for (index, before_search_word) in before_search_word_list.iter().enumerate() {
+                if before_search_word == &input_history {
+                    unsafe { logout(index as i32); }
+
+                    unsafe { logout(1111); }
+                    cache_index = index;
+                    is_cache_found = true;
+                }
+            }
+        }
+    }
+    // キャッシュ化ここまで
 
     // TODO: オプション化
     input_word = input_word.to_lowercase();
@@ -53,22 +79,33 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
         return word_scoreing_list;
     }
 
-    let search_word_list = SEARCH_WORD_LIST.lock().unwrap();
-    for mut word in search_word_list.iter() {
+    // キャッシュ化ここから
+    // ジェネレータ化？それともどちらもwordString化？それともリスト？x
+    let mut search_word_list: Vec<WordScoring> = Vec::new();
+    let mut search_result_cache_list = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
+    if is_cache_found {
+        search_word_list = search_result_cache_list[cache_index].clone();
+        unsafe { logout(2222); }
+        unsafe { logout(search_word_list.len() as i32); }
+    } else {
+        search_word_list = SEARCH_WORD_LIST.lock().unwrap().to_vec();
+    }
+    // キャッシュ化ここまで
+
+    for mut word_scoring in search_word_list.iter_mut() {
         let mut debug_str: String = "".to_string();
-        let mut score: i32 = 0;
         let mut add_score: i32 = 1;
         let mut next_word_matched_at = 0;
         let mut is_all_match = true;
 
-        if word.len() < input_word.len() {
+        if word_scoring.word.len() < input_word.len() {
             continue;
         }
 
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
 
         // TODO: オプション化
-        let mut word_for_search = word.to_lowercase();
+        let mut word_for_search = word_scoring.word.to_lowercase();
         for input_char in input_word.chars() {
             let mut is_found = false;
 
@@ -84,7 +121,7 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
                     }
 
                     debug_str = debug_str + " + " + &i.to_string() + ":" + &next_word_matched_at.to_string() + ":" + &add_score.to_string();
-                    score = score + add_score;
+                    word_scoring.score = word_scoring.score + add_score;
                     next_word_matched_at = i + 1;
                     is_found = true;
                     break;
@@ -102,15 +139,11 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
         }
 
         if is_all_match {
-            let len_diff = (word.len() - input_word.len()) as i32;
-            score = score - len_diff;
+            let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
+            word_scoring.score = word_scoring.score - len_diff;
 
-            let word_scoring = WordScoring{
-                score,
-                word: word.to_string()
-                // word: word.to_string() + &score.to_string() // for scoring debug
-            };
-            word_scoreing_list.push(word_scoring);
+            // word_scoring.word = word.to_string() + &score.to_string(); // for scoring debug
+            word_scoreing_list.push(word_scoring.clone());
         }
     }
 
@@ -119,8 +152,8 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
         sort(&mut word_scoreing_list);
     }
 
-    //SEARCH_RESULT_CACHE_LIST.lock().unwrap().push(word_scoreing_list);
-    //BEFORE_SEARCH_WORD_LIST.lock().unwrap().push(input_word);
+    search_result_cache_list.push(word_scoreing_list.clone());
+    before_search_word_list.push(input_word);
 
     return word_scoreing_list;
 }
