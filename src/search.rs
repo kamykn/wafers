@@ -40,57 +40,77 @@ impl PartialEq for WordScoring {
     }
 }
 
+// TODO キャッシュ削除実装
 fn delete_cache() {
 
 }
 
-// FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
-pub fn search(mut input_word: String) -> Vec<WordScoring> {
-    // 高速化アイデア
-    // 毎回入力された値を頭から検索しているので、ワードが同じであればキャッシュに詰める
-    
-    // キャッシュ化ここから
+// キャッシュを探す
+fn search_cache(before_search_word_list_mutex: Vec<String>, input_word: String) -> (i32, bool) {
     let mut is_cache_found = false;
     let mut cache_index = 0;
-    let mut before_search_word_list = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
-    if before_search_word_list.len() as i32 > 0 {
+
+    if before_search_word_list_mutex.len() as i32 > 0 {
         let mut input_history = String::new();
         for input_char in input_word.chars() {
             input_history.push(input_char);
-            for (index, before_search_word) in before_search_word_list.iter().enumerate() {
+            for (index, before_search_word) in before_search_word_list_mutex.iter().enumerate() {
                 if before_search_word == &input_history {
-                    unsafe { logout(index as i32); }
-
-                    unsafe { logout(1111); }
                     cache_index = index;
                     is_cache_found = true;
                 }
             }
         }
     }
-    // キャッシュ化ここまで
 
+    return (cache_index as i32, is_cache_found)
+}
+
+// FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
+pub fn search(mut input_word: String) -> Vec<WordScoring> {
+    // キャッシュ検索
+    let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
+    let (cache_index, is_cache_found) = search_cache(before_search_word_list_mutex.to_vec(), input_word.clone());
+
+    // lowercase照合
     // TODO: オプション化
     input_word = input_word.to_lowercase();
 
+    // 結果用変数
     let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
-
     if input_word.len() == 0 {
         return word_scoreing_list;
     }
 
-    // キャッシュ化ここから
-    // ジェネレータ化？それともどちらもwordString化？それともリスト？x
+    // キャッシュがある場合はキャッシュを採用、無い場合はワードリストから作成
     let mut search_word_list: Vec<WordScoring> = Vec::new();
-    let mut search_result_cache_list = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
+    let mut search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
+    let mut search_result_cache_list = search_result_cache_list_mutex.to_vec();
     if is_cache_found {
-        search_word_list = search_result_cache_list[cache_index].clone();
-        unsafe { logout(2222); }
+        search_word_list = search_result_cache_list[cache_index as usize].clone();
+        search_result_cache_list = search_result_cache_list[..cache_index as usize].to_vec();
         unsafe { logout(search_word_list.len() as i32); }
     } else {
         search_word_list = SEARCH_WORD_LIST.lock().unwrap().to_vec();
     }
-    // キャッシュ化ここまで
+
+    word_scoreing_list = fazzy_match(search_word_list, input_word.clone());
+
+    // TODO: オプション化
+    if word_scoreing_list.len() > 1 {
+        sort(&mut word_scoreing_list);
+    }
+
+    // キャッシュに入れる
+    search_result_cache_list_mutex.push(word_scoreing_list.clone());
+    before_search_word_list_mutex.push(input_word);
+
+    return word_scoreing_list;
+}
+
+// fazzy_matchのロジック部分
+fn fazzy_match (mut search_word_list: Vec<WordScoring>, input_word: String) -> Vec<WordScoring> {
+    let mut word_scoreing_list: Vec<WordScoring> = Vec::new();
 
     for mut word_scoring in search_word_list.iter_mut() {
         let mut debug_str: String = "".to_string();
@@ -120,6 +140,7 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
                         add_score = 1;
                     }
 
+                    // TODO: 削除デバッグ用文字列
                     debug_str = debug_str + " + " + &i.to_string() + ":" + &next_word_matched_at.to_string() + ":" + &add_score.to_string();
                     word_scoring.score = word_scoring.score + add_score;
                     next_word_matched_at = i + 1;
@@ -147,31 +168,10 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
         }
     }
 
-    // TODO: オプション化
-    if word_scoreing_list.len() > 1 {
-        sort(&mut word_scoreing_list);
-    }
-
-    search_result_cache_list.push(word_scoreing_list.clone());
-    before_search_word_list.push(input_word);
-
-    return word_scoreing_list;
+    word_scoreing_list 
 }
 
 // TODO: スコアがランクに満たない場合早々に切ってしまいたい
-// fn isRankin(score, current_ranking) {
-//     // minをstaticにしたい
-//     // min より低ければ圏外
-//     if  {
-// 
-//     }
-// 
-//     // すでにランクがN件以上かつminと=なら圏外
-//     
-//     // ランクイン
-//     (rank, current_ranking)
-// 
-// }
 
 // rustでクイックソート(逆順)
 // FYI: https://qiita.com/chalharu/items/40b4da4d4a88d509a214
