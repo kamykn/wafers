@@ -66,11 +66,25 @@ fn search_cache(before_search_word_list_mutex: Vec<String>, input_word: String) 
     return (cache_index as i32, is_cache_found)
 }
 
+// 検索対象文字列を取得
+fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>, search_result_cache_list: Vec<Vec<WordScoring>>) -> Vec<WordScoring> {
+    // キャッシュ検索
+    let (cache_index, is_cache_found) = search_cache(before_search_word_list, input_word.clone());
+
+    // キャッシュがある場合はキャッシュを採用、無い場合はワードリストから作成
+    let mut search_word_list: Vec<WordScoring> = Vec::new();
+    if is_cache_found {
+        search_word_list = search_result_cache_list[cache_index as usize].clone();
+        unsafe { logout(search_word_list.len() as i32); }
+    } else {
+        search_word_list = SEARCH_WORD_LIST.lock().unwrap().to_vec();
+    }
+
+    search_word_list
+}
+
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
 pub fn search(mut input_word: String) -> Vec<WordScoring> {
-    // キャッシュ検索
-    let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
-    let (cache_index, is_cache_found) = search_cache(before_search_word_list_mutex.to_vec(), input_word.clone());
 
     // lowercase照合
     // TODO: オプション化
@@ -82,20 +96,13 @@ pub fn search(mut input_word: String) -> Vec<WordScoring> {
         return word_scoreing_list;
     }
 
-    // キャッシュがある場合はキャッシュを採用、無い場合はワードリストから作成
-    let mut search_word_list: Vec<WordScoring> = Vec::new();
+    // 検索
     let mut search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
-    let mut search_result_cache_list = search_result_cache_list_mutex.to_vec();
-    if is_cache_found {
-        search_word_list = search_result_cache_list[cache_index as usize].clone();
-        search_result_cache_list = search_result_cache_list[..cache_index as usize].to_vec();
-        unsafe { logout(search_word_list.len() as i32); }
-    } else {
-        search_word_list = SEARCH_WORD_LIST.lock().unwrap().to_vec();
-    }
-
+    let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
+    let search_word_list = get_search_word_list(input_word.clone(), before_search_word_list_mutex.to_vec(), search_result_cache_list_mutex.to_vec());
     word_scoreing_list = fazzy_match(search_word_list, input_word.clone());
 
+    // ソート 
     // TODO: オプション化
     if word_scoreing_list.len() > 1 {
         sort(&mut word_scoreing_list);
