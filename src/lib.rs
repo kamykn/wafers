@@ -27,14 +27,10 @@ struct WordList {
 
 #[no_mangle]
 pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_string_utils::JsInteropString) {
-    // TODO: 脱JSON http://ykicisk.hatenablog.com/entry/2017/04/30/195824
     let word_list_json = word_list_i_str.into_boxed_string();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json).unwrap(); 
     for word in word_list_obj.list {
-        let word_scoring = search::WordScoring{
-            score: 0,
-            word: word.to_string()
-        };
+        let word_scoring = search::word_scoring::new(word.to_string());
         search::SEARCH_WORD_LIST.lock().unwrap().push(word_scoring);
     }
 }
@@ -61,7 +57,7 @@ pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) ->
         }
         let mut word_list_list: Vec<String> = Vec::new();
 
-        // TODO 無駄にsliceする場合あり
+        // TODO 無駄にsliceする場合あり(全範囲返すとか)
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
         for word_scorering in sliced_word_scoreling_list {
