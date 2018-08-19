@@ -4,7 +4,7 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
     let mut word_scoreing_list: Vec<word_scoring::WordScoring> = Vec::new();
 
     for mut word_scoring in search_word_list.iter_mut() {
-        let mut debug_str: String = "".to_string();
+        // let mut debug_str: String = "".to_string();
         let mut add_score: i32 = 1;
         let mut next_word_matched_at = 0;
         let mut is_all_match = true;

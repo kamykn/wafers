@@ -1,5 +1,5 @@
 #![feature(const_vec_new)]
-mod js_string_utils;
+mod js_utils;
 mod search;
 
 extern crate serde;
@@ -26,7 +26,7 @@ struct WordList {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_string_utils::JsInteropString) {
+pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_utils::JsInteropString) {
     let word_list_json = word_list_i_str.into_boxed_string();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json).unwrap(); 
     for word in word_list_obj.list {
@@ -42,7 +42,7 @@ pub unsafe extern "C" fn setReturnMatchListNum(len: u32) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn wazf(search_i_str: js_string_utils::JsInteropString) -> *mut c_char {
+pub unsafe extern "C" fn wazf(search_i_str: js_utils::JsInteropString) -> *mut c_char {
     let search_str = search_i_str.into_boxed_string();
     let word_scoreing_list = search::search(search_str.to_string());
 
@@ -84,17 +84,17 @@ pub unsafe extern "C" fn get_len() -> u32 {
 
 
 #[no_mangle]
-pub unsafe extern "C" fn stringPrepare(cap: usize) -> js_string_utils::JsInteropString {
-    js_string_utils::JsInteropString::with_capacity(cap)
+pub unsafe extern "C" fn stringPrepare(cap: usize) -> js_utils::JsInteropString {
+    js_utils::JsInteropString::with_capacity(cap)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn stringData(mut s: js_string_utils::JsInteropString) -> *mut u8 {
+pub unsafe extern "C" fn stringData(mut s: js_utils::JsInteropString) -> *mut u8 {
     s.as_mut_ptr()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn stringLen(s: js_string_utils::JsInteropString) -> usize {
+pub unsafe extern "C" fn stringLen(s: js_utils::JsInteropString) -> usize {
     s.as_string().len()
 }
 
