@@ -1,13 +1,22 @@
 use super::word_scoring;
 
+// import from js
+extern {
+    fn logout(n: i32);
+}
+
+
 pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_word: String) -> Vec<word_scoring::WordScoring> {
     let mut word_scoreing_list: Vec<word_scoring::WordScoring> = Vec::new();
 
     for mut word_scoring in search_word_list.iter_mut() {
         // let mut debug_str: String = "".to_string();
-        let mut add_score: i32 = 1;
         let mut next_word_matched_at = 0;
         let mut is_all_match = true;
+        let mut add_score: i32 = 1;
+
+        // スコア初期化
+        word_scoring.score = 0;
 
         if word_scoring.word.len() < input_word.len() {
             continue;
@@ -25,9 +34,12 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
                 if input_char == search_char && input_char != ' ' {
                     if i == next_word_matched_at {
                         // 連続したMatchには加点
-                        add_score = add_score + 1;
+                        add_score = 3;
+                    } else if i > next_word_matched_at {
+                        // 順番通りのMatchには加点
+                        add_score = 2;
                     } else {
-                        // 加点戻し
+                        // 通常加点
                         add_score = 1;
                     }
 
@@ -50,11 +62,12 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
         }
 
         if is_all_match {
-            let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
-            word_scoring.score = word_scoring.score - len_diff;
+            // 距離に対する減点
+            // let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
+            // word_scoring.score = word_scoring.score - len_diff;
 
             // TODO: 削除 デバッグ用文字列
-            // word_scoring.word = word.to_string() + &score.to_string();
+            // word_scoring.word = word_scoring.word.to_string() + &word_scoring.score.to_string();
             word_scoreing_list.push(word_scoring.clone());
         }
     }
