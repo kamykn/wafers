@@ -70,7 +70,8 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
             word_scoring.score = word_scoring.score - len_diff;
 
             // TODO: 削除 デバッグ用文字列
-            word_scoring.word = word_scoring.word.to_string() + &word_scoring.score.to_string();
+            // 加点された履歴が表示される
+            // word_scoring.word = word_scoring.word.to_string() + &word_scoring.score.to_string();
             word_scoreing_list.push(word_scoring.clone());
         }
     }
