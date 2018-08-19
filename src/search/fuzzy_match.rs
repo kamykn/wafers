@@ -29,13 +29,15 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
         for input_char in input_word.chars() {
             let mut is_found = false;
 
+            let mut index = 0;
             for (i, search_char) in word_for_search.chars().enumerate()  {
+                index = i as i32;
                 // TODO スペースが来たら離れたところのほうが加点高くする
                 if input_char == search_char && input_char != ' ' {
-                    if i == next_word_matched_at {
+                    if index == next_word_matched_at {
                         // 連続したMatchには加点
                         add_score = 3;
-                    } else if i > next_word_matched_at {
+                    } else if index > next_word_matched_at {
                         // 順番通りのMatchには加点
                         add_score = 2;
                     } else {
@@ -46,7 +48,6 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
                     // TODO: 削除 デバッグ用文字列
                     // debug_str = debug_str + " + " + &i.to_string() + ":" + &next_word_matched_at.to_string() + ":" + &add_score.to_string();
                     word_scoring.score = word_scoring.score + add_score;
-                    next_word_matched_at = i + 1;
                     is_found = true;
                     break;
                 }
@@ -55,19 +56,21 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
             if !is_found {
                 is_all_match = false;
                 break;
-            } else {
-                // 2重matchをしないように考慮
-                word_for_search.remove(next_word_matched_at - 1);
             }
+
+            // 2重matchをしないように考慮
+            word_for_search.remove(index as usize);
+            // removeで詰められるので = で束縛
+            next_word_matched_at = index;
         }
 
         if is_all_match {
             // 距離に対する減点
-            // let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
-            // word_scoring.score = word_scoring.score - len_diff;
+            let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
+            word_scoring.score = word_scoring.score - len_diff;
 
             // TODO: 削除 デバッグ用文字列
-            // word_scoring.word = word_scoring.word.to_string() + &word_scoring.score.to_string();
+            word_scoring.word = word_scoring.word.to_string() + &word_scoring.score.to_string();
             word_scoreing_list.push(word_scoring.clone());
         }
     }
