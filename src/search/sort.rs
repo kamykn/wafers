@@ -7,24 +7,30 @@ pub fn sort<T: PartialOrd + Clone>(source: &mut [T]) {
         let pivot = source[(left + right) >> 1].clone();
         let mut l = left;
         let mut r = right;
+
         while l <= r {
             while pivot > source[r] && r > left {
                 r -= 1;
             }
+
             while source[l] > pivot && l < right {
                 l += 1;
             }
+
             if l <= r {
                 source.swap(l, r);
+
                 if r > 0 {
                     r -= 1;
                 }
                 l += 1;
             }
         }
+
         if left < r {
             qr_sort(source, left, r);
         }
+
         if right > l {
             qr_sort(source, l, right);
         }

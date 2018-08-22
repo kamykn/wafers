@@ -60,6 +60,11 @@ class WAZF {
 		return JSON.parse(jsonStr);
 	}
 
+	setWordList(wordList, listCount) {
+		this.wazf.deleteCache();
+		this.setSearchWordList(wordList);
+		this.setReturnMatchListNum(listCount);
+	}
 }
 
 fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
@@ -75,8 +80,11 @@ fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
 let wazf;
 function main(results) {
 	wazf = new WAZF(results);
-	wazf.setSearchWordList(wordlist);
-	wazf.setReturnMatchListNum(20);
+	wazf.setWordList(wordlist, 20);
+}
+
+function changeWordList () {
+
 }
 
 document.getElementById("wasm-fzf").addEventListener('keyup',function(){

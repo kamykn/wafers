@@ -98,6 +98,11 @@ pub unsafe extern "C" fn stringLen(s: js_utils::JsInteropString) -> usize {
     s.as_string().len()
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn deleteCache() {
+    search::delete_cache();
+}
+
 fn set_len(len: u32) {
     let mut search_result_json_len = search::SEARCH_RESULT_JSON_LEN.lock().unwrap();
     let found_word_list_json_len = len;
