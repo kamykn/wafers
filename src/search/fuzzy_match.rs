@@ -5,7 +5,6 @@ extern {
     fn logout(n: i32);
 }
 
-
 pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_word: String) -> Vec<word_scoring::WordScoring> {
     let mut word_scoreing_list: Vec<word_scoring::WordScoring> = Vec::new();
 
@@ -30,8 +29,14 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
             let mut is_found = false;
 
             let mut index = 0;
+            let mut remove_byte_index_start = 0;
+            let mut remove_byte_index_end = 0;
+            let mut remove_byte_len_last = 0;
             for (i, search_char) in word_for_search.chars().enumerate()  {
                 index = i as i32;
+                remove_byte_index_start = remove_byte_index_end;
+                remove_byte_len_last = search_char.len_utf8();
+                remove_byte_index_end = remove_byte_index_start + remove_byte_len_last;
                 // TODO スペースが来たら離れたところのほうが加点高くする
                 if input_char == search_char && input_char != ' ' {
                     if index == next_word_matched_at {
@@ -59,8 +64,8 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
             }
 
             // 2重matchをしないように考慮
-            word_for_search.remove(index as usize);
-            // removeで詰められるので = で束縛
+            word_for_search.drain(remove_byte_index_start..remove_byte_index_end);
+            // removeでindexが詰められるので = で束縛しとく
             next_word_matched_at = index;
         }
 

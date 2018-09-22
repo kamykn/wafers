@@ -83,9 +83,18 @@ function main(results) {
 	wazf.setWordList(wordlist, 20);
 }
 
-function changeWordList () {
-
-}
+document.getElementById("change-wordlist").addEventListener('click',function(){
+	let switcher = false;
+	(function () {
+		console.log('switched');
+		switcher = !switcher
+		if (switcher) {
+			wazf.setWordList(wordlistJP, 20);
+		} else {
+			wazf.setWordList(wordlist, 20);
+		}
+	})();
+});
 
 document.getElementById("wasm-fzf").addEventListener('keyup',function(){
 	const value = document.getElementById("wasm-fzf").value;
@@ -118,6 +127,16 @@ document.getElementById("wasm-fzf").addEventListener('keyup',function(){
 	});
 });
 
+let wordlistJP = [
+'こんにちは',
+'さようなら',
+'ごきげんよう',
+'またあした',
+'おやすみなさい',
+'いただきます',
+'いってきます',
+'ただいま',
+];
 
 let wordlist = [
 'the',

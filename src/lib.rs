@@ -12,9 +12,9 @@ extern crate serde_derive;
 extern crate lazy_static;
 
 // import from js
-// extern {
-//     fn logout(n: i32);
-// }
+extern {
+    fn logout(n: i32);
+}
 
 use std::os::raw::c_char;
 use std::ffi::CString;
