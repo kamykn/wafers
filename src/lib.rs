@@ -29,9 +29,12 @@ struct WordList {
 pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_utils::JsInteropString) {
     let word_list_json = word_list_i_str.into_boxed_string();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json).unwrap(); 
+
+    let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
+    search_word_list.clear();
     for word in word_list_obj.list {
         let word_scoring = search::word_scoring::new(word.to_string());
-        search::SEARCH_WORD_LIST.lock().unwrap().push(word_scoring);
+        search_word_list.push(word_scoring);
     }
 }
 

@@ -10,10 +10,10 @@ extern {
 }
 
 lazy_static! {
-    /// 今までのwordはキャッシュ持つ
-    /// 一文字追加されただけなどの状況がわかればキャッシュの続きから検索する。
-    /// 例：l,lo,lov,loveの分のキャッシュを持ち、検索文字列の削除が発生したらそこまで消す。
-    /// 消される可能性があるのは単語末尾だけではない。単語真ん中もありうる。
+    // 今までのwordはキャッシュ持つ
+    // 一文字追加されただけなどの状況がわかればキャッシュの続きから検索する。
+    // 例：l,lo,lov,loveの分のキャッシュを持ち、検索文字列の削除が発生したらそこまで消す。
+    // 消される可能性があるのは単語末尾だけではない。単語真ん中もありうる。
 
     // key: 検索語のindex, value: 検索結果キャッシュ
     pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<Vec<word_scoring::WordScoring>>> = Mutex::new(vec![]);
@@ -58,13 +58,13 @@ pub fn search(mut input_word: String) -> Vec<word_scoring::WordScoring> {
     word_scoreing_list
 }
 
-/// キャッシュ削除
+// キャッシュ削除
 pub fn delete_cache() {
     SEARCH_RESULT_CACHE_LIST.lock().unwrap().truncate(0);
     BEFORE_SEARCH_WORD_LIST.lock().unwrap().truncate(0);
 }
 
-/// 検索対象文字列を取得
+// 検索対象文字列を取得
 fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>, search_result_cache_list: Vec<Vec<word_scoring::WordScoring>>) -> Vec<word_scoring::WordScoring> {
     // キャッシュ検索
     let (cache_index, is_cache_found) = search_cache(before_search_word_list, input_word.clone());
@@ -82,7 +82,7 @@ fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>
     search_word_list
 }
 
-/// キャッシュを探す
+// キャッシュを探す
 fn search_cache(before_search_word_list_mutex: Vec<String>, input_word: String) -> (i32, bool) {
     let mut is_cache_found = false;
     let mut cache_index = 0;
