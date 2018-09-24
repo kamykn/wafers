@@ -53,7 +53,9 @@ class WAZF {
 
 		const stringBuffer = new Uint8Array(this.wazf.memory.buffer, offset, len);
 
-		// TODO: utf-8だけが前提でよいのかな…
+		// Rustの文字列の取扱がUnicodeなのでUnicodeで渡ってくるので
+		// ページ毎の文字コードへ変換する
+		// TODO: utf-8以外にも対応する
 		// FYI: https://stackoverflow.com/questions/47529643/how-to-return-a-string-or-similar-from-rust-in-webassembly
 		const utf8dec = new TextDecoder ('utf-8');
 		const jsonStr = utf8dec.decode (stringBuffer);
