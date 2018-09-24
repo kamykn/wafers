@@ -40,3 +40,14 @@ webpackの書き方から使い方まで作法に従う必要がある
 文字コードとか環境に依存した何かまで吸収してくれそうではある。
 binaryは多分大きくなる
 jsも多分大きくなる
+
+# node + npmについて
+```
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.32.1/install.sh | bash
+source /root/.bashrc && nvm install stable # for Docker
+
+[root@8d50c6d3f940 html]# npm -v
+6.4.1
+[root@8d50c6d3f940 html]# node -v
+v10.11.0
+```
