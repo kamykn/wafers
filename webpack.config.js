@@ -1,6 +1,7 @@
 const path = require('path');
  
 module.exports = {
+  mode: 'development',
   entry: './assets/index.js',
   output:  {
     filename: 'bundle.js',
@@ -10,8 +11,15 @@ module.exports = {
   module: {
     rules: [
       {
-	test: /\.wasm$/,
-        loader: 'wasm-loader',
+        test: /\.rs$/,
+        use: [{
+          loader: 'wasm-loader'
+        }, {
+          loader: 'rust-native-wasm-loader',
+          options: {
+            release: true
+          }
+        }]
       }
     ]
   }

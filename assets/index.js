@@ -1,3 +1,5 @@
+import loadWasm from '../src/lib.rs'
+
 class RustUtils {
 	constructor(instance) {
 		this.instance = instance;
@@ -70,11 +72,11 @@ class WAZF {
 	}
 }
 
-fetch('/target/wasm32-unknown-unknown/debug/wasm_fzf.wasm')
-	.then(response => response.arrayBuffer())
-	.then(bytes => WebAssembly.instantiate(bytes, {env: {
-		logout: console.log,
-	}}))
+loadWasm()
+	// .then(response => response.arrayBuffer())
+	// .then(bytes => WebAssembly.instantiate(bytes, {env: {
+	// 	logout: console.log,
+	// }}))
 	.then(results => {
 		main(results);
 	});
