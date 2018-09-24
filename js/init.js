@@ -52,10 +52,11 @@ class WAZF {
 		}
 
 		const stringBuffer = new Uint8Array(this.wazf.memory.buffer, offset, len);
-		let jsonStr = '';
-		for (let i = 0; i < stringBuffer.length; i++) {
-			jsonStr += String.fromCharCode(stringBuffer[i]);
-		}
+
+		// TODO: utf-8だけが前提でよいのかな…
+		// FYI: https://stackoverflow.com/questions/47529643/how-to-return-a-string-or-similar-from-rust-in-webassembly
+		const utf8dec = new TextDecoder ('utf-8');
+		const jsonStr = utf8dec.decode (stringBuffer);
 
 		return JSON.parse(jsonStr);
 	}
@@ -136,6 +137,8 @@ let wordlistJP = [
 'いただきます',
 'いってきます',
 'ただいま',
+'ohayo',
+'こんniちWa',
 ];
 
 let wordlist = [

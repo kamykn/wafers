@@ -34,6 +34,8 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
             let mut remove_byte_len_last = 0;
             for (i, search_char) in word_for_search.chars().enumerate()  {
                 index = i as i32;
+
+                // TODO: ココらへんはStructなどにして外に出す
                 remove_byte_index_start = remove_byte_index_end;
                 remove_byte_len_last = search_char.len_utf8();
                 remove_byte_index_end = remove_byte_index_start + remove_byte_len_last;
@@ -65,7 +67,7 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
 
             // 2重matchをしないように考慮
             word_for_search.drain(remove_byte_index_start..remove_byte_index_end);
-            // removeでindexが詰められるので = で束縛しとく
+            // drainでindexが詰められるので = で束縛しとく
             next_word_matched_at = index;
         }
 
