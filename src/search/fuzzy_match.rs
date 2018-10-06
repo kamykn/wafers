@@ -1,10 +1,5 @@
 use super::word_scoring;
 
-// import from js
-extern {
-    fn logout(n: i32);
-}
-
 pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_word: String) -> Vec<word_scoring::WordScoring> {
     let mut word_scoreing_list: Vec<word_scoring::WordScoring> = Vec::new();
 

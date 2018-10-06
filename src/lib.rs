@@ -1,9 +1,9 @@
-#![feature(const_vec_new)]
-mod js_utils;
-mod search;
+#![feature(const_vec_new, proc_macro)]
 
 extern crate serde;
 extern crate serde_json;
+extern crate cfg_if;
+extern crate wasm_bindgen;
 
 #[macro_use]
 extern crate serde_derive;
@@ -11,24 +11,20 @@ extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
 
-// import from js
-extern {
-    fn logout(n: i32);
-}
+mod search;
+mod utils;
 
-use std::os::raw::c_char;
-use std::ffi::CString;
 use std::str;
+use wasm_bindgen::prelude::*;
 
 #[derive(Serialize, Deserialize)]
 struct WordList {
     list: Vec<String>
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_utils::JsInteropString) {
-    let word_list_json = word_list_i_str.into_boxed_string();
-    let word_list_obj: WordList = serde_json::from_str(&word_list_json).unwrap(); 
+#[wasm_bindgen]
+pub fn setSearchWordList(word_list_json: &str) {
+    let word_list_obj: WordList = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
 
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
@@ -38,17 +34,15 @@ pub unsafe extern "C" fn setSearchWordList(word_list_i_str: js_utils::JsInteropS
     }
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn setReturnMatchListNum(len: u32) {
+#[wasm_bindgen]
+pub fn setReturnMatchListNum(len: u32) {
     let mut return_match_list_num = search::RETURN_MATCH_LIST_NUM.lock().unwrap();
     *return_match_list_num = len;
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn wazf(search_i_str: js_utils::JsInteropString) -> *mut c_char {
-    let search_str = search_i_str.into_boxed_string();
+#[wasm_bindgen]
+pub fn wazf(search_str: &str) -> String {
     let word_scoreing_list = search::search(search_str.to_string());
-
     let mut found_word_list = WordList{list: Vec::new()};
 
     // TODO デフォルト
@@ -72,37 +66,18 @@ pub unsafe extern "C" fn wazf(search_i_str: js_utils::JsInteropString) -> *mut c
 
     // TODO: 脱JSON http://ykicisk.hatenablog.com/entry/2017/04/30/195824
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
-    let len = found_word_list_json.len() as u32;
-    set_len(len);
 
-    let found_word_list_json_cstring = CString::new(found_word_list_json).unwrap();
-    found_word_list_json_cstring.into_raw()
+    found_word_list_json
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn get_len() -> u32 {
+#[wasm_bindgen]
+pub fn get_len() -> u32 {
     let search_result_json_len = search::SEARCH_RESULT_JSON_LEN.lock().unwrap();
     *search_result_json_len
 }
 
-
-#[no_mangle]
-pub unsafe extern "C" fn stringPrepare(cap: usize) -> js_utils::JsInteropString {
-    js_utils::JsInteropString::with_capacity(cap)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn stringData(mut s: js_utils::JsInteropString) -> *mut u8 {
-    s.as_mut_ptr()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn stringLen(s: js_utils::JsInteropString) -> usize {
-    s.as_string().len()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn deleteCache() {
+#[wasm_bindgen]
+pub fn deleteCache() {
     search::delete_cache();
 }
 

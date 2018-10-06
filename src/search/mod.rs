@@ -4,11 +4,6 @@ mod sort;
 mod fuzzy_match;
 pub mod word_scoring;
 
-// import from js
-extern {
-    fn logout(n: i32);
-}
-
 lazy_static! {
     // 今までのwordはキャッシュ持つ
     // 一文字追加されただけなどの状況がわかればキャッシュの続きから検索する。
@@ -74,7 +69,6 @@ fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>
 
     if is_cache_found {
         search_word_list = search_result_cache_list[cache_index as usize].clone();
-        unsafe { logout(search_word_list.len() as i32); }
     } else {
         search_word_list = SEARCH_WORD_LIST.lock().unwrap().to_vec();
     }
