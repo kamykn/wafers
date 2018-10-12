@@ -24,6 +24,7 @@ struct WordList {
 
 #[wasm_bindgen]
 pub fn setSearchWordList(word_list_json: &str) {
+    search::delete_cache();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
 
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
@@ -36,6 +37,7 @@ pub fn setSearchWordList(word_list_json: &str) {
 
 #[wasm_bindgen]
 pub fn setReturnMatchListNum(len: u32) {
+    // 返り値としてほしい個数の設定
     let mut return_match_list_num = search::RETURN_MATCH_LIST_NUM.lock().unwrap();
     *return_match_list_num = len;
 }
@@ -68,21 +70,4 @@ pub fn wazf(search_str: &str) -> String {
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
 
     found_word_list_json
-}
-
-#[wasm_bindgen]
-pub fn get_len() -> u32 {
-    let search_result_json_len = search::SEARCH_RESULT_JSON_LEN.lock().unwrap();
-    *search_result_json_len
-}
-
-#[wasm_bindgen]
-pub fn deleteCache() {
-    search::delete_cache();
-}
-
-fn set_len(len: u32) {
-    let mut search_result_json_len = search::SEARCH_RESULT_JSON_LEN.lock().unwrap();
-    let found_word_list_json_len = len;
-    *search_result_json_len = found_word_list_json_len;
 }

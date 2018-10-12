@@ -5,7 +5,3 @@ export function setReturnMatchListNum(arg0: number): void;
 
 export function wazf(arg0: string): string;
 
-export function get_len(): number;
-
-export function deleteCache(): void;
-

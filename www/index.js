@@ -5,7 +5,6 @@ class WAZF {
 		this.wazf = wazf;
 	}
 
-
 	setSearchWordList(searchWordList) {
 		this.wazf.setSearchWordList(JSON.stringify({list: searchWordList}));
 	}
@@ -20,7 +19,6 @@ class WAZF {
 	}
 
 	setWordList(wordList, listCount) {
-		this.wazf.deleteCache();
 		this.setSearchWordList(wordList);
 		this.setReturnMatchListNum(listCount);
 	}
@@ -28,7 +26,6 @@ class WAZF {
 
 
 function main(wasm) {
-	console.log(wasm)
 	let wazf = new WAZF(wasm);
 	console.log(wazf.wazf)
 	console.log(wordlist)

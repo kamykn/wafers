@@ -88,20 +88,6 @@ export function wazf(arg0) {
 
 }
 
-/**
-* @returns {number}
-*/
-export function get_len() {
-    return wasm.get_len();
-}
-
-/**
-* @returns {void}
-*/
-export function deleteCache() {
-    return wasm.deleteCache();
-}
-
 export function __wbindgen_throw(ptr, len) {
     throw new Error(getStringFromWasm(ptr, len));
 }
