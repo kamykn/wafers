@@ -4,7 +4,6 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
     let mut word_scoreing_list: Vec<word_scoring::WordScoring> = Vec::new();
 
     for mut word_scoring in search_word_list.iter_mut() {
-        // let mut debug_str: String = "".to_string();
         let mut next_word_matched_at = 0;
         let mut is_all_match = true;
         let mut add_score: i32 = 1;
@@ -47,8 +46,6 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
                         add_score = 1;
                     }
 
-                    // TODO: 削除 デバッグ用文字列
-                    // debug_str = debug_str + " + " + &i.to_string() + ":" + &next_word_matched_at.to_string() + ":" + &add_score.to_string();
                     word_scoring.score = word_scoring.score + add_score;
                     is_found = true;
                     break;
@@ -71,9 +68,6 @@ pub fn fuzzy_match (mut search_word_list: Vec<word_scoring::WordScoring>, input_
             let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
             word_scoring.score = word_scoring.score - len_diff;
 
-            // TODO: 削除 デバッグ用文字列
-            // 加点された履歴が表示される
-            // word_scoring.word = word_scoring.word.to_string() + &word_scoring.score.to_string();
             word_scoreing_list.push(word_scoring.clone());
         }
     }

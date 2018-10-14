@@ -15,6 +15,11 @@ pub struct WordScoring {
 
 impl PartialOrd for WordScoring {
     fn partial_cmp(&self, other: &WordScoring) -> Option<Ordering> {
+        // スコアが同じであれば文字列のUnicode順
+        if self.score == other.score {
+            return self.word.partial_cmp(&other.word);
+        }
+
         self.score.partial_cmp(&other.score)
     }
 }
