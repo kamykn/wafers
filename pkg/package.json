@@ -1,15 +1,15 @@
 {
-  "name": "muff",
+  "name": "muff-wasm",
   "collaborators": [
     "kamykn <to.kamykn@gmail.com>"
   ],
   "version": "0.1.0",
   "files": [
-    "muff_bg.wasm",
-    "muff.js",
-    "muff.d.ts"
+    "muff_wasm_bg.wasm",
+    "muff_wasm.js",
+    "muff_wasm.d.ts"
   ],
-  "module": "muff.js",
-  "types": "muff.d.ts",
+  "module": "muff_wasm.js",
+  "types": "muff_wasm.d.ts",
   "sideEffects": "false"
 }

@@ -1,5 +1,5 @@
 /* tslint:disable */
-import * as wasm from './muff_bg';
+import * as wasm from './muff_wasm_bg';
 
 let cachedEncoder = new TextEncoder('utf-8');
 
