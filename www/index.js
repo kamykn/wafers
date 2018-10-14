@@ -1,86 +1,68 @@
-import * as wasm from "wazf";
+import { wazf } from "./wazf";
 
-class WAZF {
-	constructor(wazf) {
-		this.wazf = wazf;
-	}
-
-	setSearchWordList(searchWordList) {
-		this.wazf.setSearchWordList(JSON.stringify({list: searchWordList}));
-	}
-
-	setReturnMatchListNum(returnMatchListNum) {
-		this.wazf.setReturnMatchListNum(returnMatchListNum);
-	}
-
-	search(inputWord) {
-		const result = this.wazf.wazf(inputWord);
-		return JSON.parse(result);
-	}
-
-	setWordList(wordList, listCount) {
-		this.setSearchWordList(wordList);
-		this.setReturnMatchListNum(listCount);
-	}
-}
-
-
-function main(wasm) {
-	let wazf = new WAZF(wasm);
-	console.log(wazf.wazf)
+function main() {
+	console.log(wazf)
 	console.log(wordlist)
-	wazf.setWordList(wordlist, 20);
 
-	setForm(wazf);
-	setToggle(wazf);
+	wazfSample = new wazfSample(wazf);
+	wazfSample.wazf.setReturnListLength(20);
+	wazfSample.wazf.setSearchWordList(wordlist);
+
+	wazfSample.setForm();
+	wazfSample.setToggle();
 }
 
-function setToggle(wazf) {
-	document.getElementById("change-wordlist").addEventListener('click',function(){
-		let switcher = false;
-		(function () {
-			console.log('switched');
-			switcher = !switcher
-			if (switcher) {
-				wazf.setWordList(wordlistJP, 20);
-			} else {
-				wazf.setWordList(wordlist, 20);
-			}
-		})();
-	});
-}
+class wazfSample {
+	constructor (wazf) {
+		this.wazf = wazf
+	}
 
-function setForm(wazf) {
-	document.getElementById("wasm-fzf").addEventListener('keyup',function(){
-		const value = document.getElementById("wasm-fzf").value;
-
-		console.log(value); // 検索ワード
-		const startTime = performance.now(); // 開始時間
-
-		const result = wazf.search(value);
-
-		const endTime = performance.now(); // 終了時間
-		console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
-
-		const $resultField = document.getElementById('result-field');
-		const $resultFieldWord = document.getElementsByClassName('result-field-li');
-
-		if ($resultFieldWord.length > 0) {
-			let len = $resultFieldWord.length;
-			for (let $i = 0; $i < len; $i++) {
-				// 要素が減っていくため0個目を削除
-				$resultField.removeChild($resultFieldWord[0]);
-			}
-		}
-
-		result.list.forEach (function(word) {
-			let $li = document.createElement('li');
-			$li.classList.add('result-field-li');
-			let wordNode = document.createTextNode(word);
-			$li.appendChild(wordNode);
-			$resultField.appendChild($li); // fragmentの追加する
+	setToggle() {
+		document.getElementById("change-wordlist").addEventListener('click', () => {
+			let switcher = false;
+			(() => {
+				console.log('switched');
+				switcher = !switcher
+				if (switcher) {
+					this.wazf.setWordList(wordlistJP, 20);
+				} else {
+					this.wazf.setWordList(wordlist, 20);
+				}
+			})();
 		});
-	});
+	}
+
+	setForm() {
+		document.getElementById("wasm-fzf").addEventListener('keyup', () => {
+			const value = document.getElementById("wasm-fzf").value;
+
+			const startTime = performance.now(); // 開始時間
+
+			const result = this.wazf.search(value);
+
+			const endTime = performance.now(); // 終了時間
+			console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
+
+			const $resultField = document.getElementById('result-field');
+			const $resultFieldWord = document.getElementsByClassName('result-field-li');
+
+			if ($resultFieldWord.length > 0) {
+				let len = $resultFieldWord.length;
+				for (let $i = 0; $i < len; $i++) {
+					// 要素が減っていくため0個目を削除
+					$resultField.removeChild($resultFieldWord[0]);
+				}
+			}
+
+			result.list.forEach((word) => {
+				let $li = document.createElement('li');
+				$li.classList.add('result-field-li');
+				let wordNode = document.createTextNode(word);
+				$li.appendChild(wordNode);
+				$resultField.appendChild($li); // fragmentの追加する
+			});
+		});
+	}
 }
 
 let wordlistJP = [
@@ -2900,5 +2882,4 @@ let wordlist = [
 'thirst',
 ];
 
-main(wasm);
-
+main();

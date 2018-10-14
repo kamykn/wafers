@@ -38,8 +38,8 @@ export function setSearchWordList(arg0) {
 * @param {number} arg0
 * @returns {void}
 */
-export function setReturnMatchListNum(arg0) {
-    return wasm.setReturnMatchListNum(arg0);
+export function setReturnListLength(arg0) {
+    return wasm.setReturnListLength(arg0);
 }
 
 let cachedDecoder = new TextDecoder('utf-8');

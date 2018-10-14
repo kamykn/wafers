@@ -51,3 +51,5 @@ source /root/.bashrc && nvm install stable # for Docker
 [root@8d50c6d3f940 html]# node -v
 v10.11.0
 ```
+
+# wasmの階層を下層にして、npmの階層を上にしたほうがいいかも

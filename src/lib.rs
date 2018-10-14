@@ -36,7 +36,7 @@ pub fn setSearchWordList(word_list_json: &str) {
 }
 
 #[wasm_bindgen]
-pub fn setReturnMatchListNum(len: u32) {
+pub fn setReturnListLength(len: u32) {
     // 返り値としてほしい個数の設定
     let mut return_match_list_num = search::RETURN_MATCH_LIST_NUM.lock().unwrap();
     *return_match_list_num = len;
@@ -47,7 +47,7 @@ pub fn wazf(search_str: &str) -> String {
     let word_scoreing_list = search::search(search_str.to_string());
     let mut found_word_list = WordList{list: Vec::new()};
 
-    // TODO デフォルト
+    // TODO デフォルト設定用意する
     let mut return_match_list_num = *search::RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
 
     if word_scoreing_list.len() as i32 > 0 {
@@ -56,7 +56,7 @@ pub fn wazf(search_str: &str) -> String {
         }
         let mut word_list_list: Vec<String> = Vec::new();
 
-        // TODO 無駄にsliceする場合あり(全範囲返すとか)
+        // 無駄にsliceする場合あり(全範囲返すとか)
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
         for word_scorering in sliced_word_scoreling_list {
@@ -66,7 +66,6 @@ pub fn wazf(search_str: &str) -> String {
         found_word_list.list = word_list_list;
     }
 
-    // TODO: 脱JSON http://ykicisk.hatenablog.com/entry/2017/04/30/195824
     let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
 
     found_word_list_json
