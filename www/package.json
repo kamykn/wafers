@@ -29,6 +29,6 @@
     "copy-webpack-plugin": "~4.5.2"
   },
   "dependencies": {
-    "muff-wasm": "^0.1.0"
+    "muff-wasm": "~0.1.0"
   }
 }
