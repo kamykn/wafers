@@ -1,5 +1,5 @@
 // A dependency graph that contains any wasm must all be imported
 // asynchronously. This `bootstrap.js` file does the single async import, so
 // that no one else needs to worry about it again.
-import("./muffin-sample.js")
-  .catch(e => console.error("Error importing `muffin-sample.js`:", e));
+import("./muff-sample.js")
+  .catch(e => console.error("Error importing `muff-sample.js`:", e));

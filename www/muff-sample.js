@@ -1,20 +1,20 @@
-import { muffin } from "./index";
+import { muff } from "./index";
 
 function main() {
-	console.log(muffin)
+	console.log(muff)
 	console.log(wordlist)
 
-	wazfSample = new wazfSample(muffin);
-	wazfSample.muffin.setReturnListLength(20);
-	wazfSample.muffin.setSearchWordList(wordlist);
+	wazfSample = new wazfSample(muff);
+	wazfSample.muff.setReturnListLength(20);
+	wazfSample.muff.setSearchWordList(wordlist);
 
 	wazfSample.setForm();
 	wazfSample.setToggle();
 }
 
 class wazfSample {
-	constructor (muffin) {
-		this.muffin = muffin
+	constructor (muff) {
+		this.muff = muff
 	}
 
 	setToggle() {
@@ -24,9 +24,9 @@ class wazfSample {
 				console.log('switched');
 				switcher = !switcher
 				if (switcher) {
-					this.muffin.setWordList(wordlistJP, 20);
+					this.muff.setWordList(wordlistJP, 20);
 				} else {
-					this.muffin.setWordList(wordlist, 20);
+					this.muff.setWordList(wordlist, 20);
 				}
 			})();
 		});
@@ -38,7 +38,7 @@ class wazfSample {
 
 			const startTime = performance.now(); // 開始時間
 
-			const result = this.muffin.search(value);
+			const result = this.muff.search(value);
 
 			const endTime = performance.now(); // 終了時間
 			console.log(endTime - startTime); // 何ミリ秒かかったかを表示する

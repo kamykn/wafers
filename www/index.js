@@ -1,6 +1,6 @@
 import * as wasm from "muff-wasm"
 
-class Muffin {
+class Muff {
 	constructor(wasm) {
 		this.wasm = wasm
 	}
@@ -18,6 +18,6 @@ class Muffin {
 	}
 }
 
-let muffin = new Muffin(wasm)
+let muff = new Muff(wasm)
 
-export{ muffin }
+export{ muff }
