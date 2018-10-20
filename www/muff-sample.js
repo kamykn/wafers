@@ -24,9 +24,9 @@ class wazfSample {
 				console.log('switched');
 				switcher = !switcher
 				if (switcher) {
-					this.muff.setWordList(wordlistJP, 20);
+					this.muff.setSearchWordList(wordlistJP);
 				} else {
-					this.muff.setWordList(wordlist, 20);
+					this.muff.setSearchWordList(wordlist, 20);
 				}
 			})();
 		});
