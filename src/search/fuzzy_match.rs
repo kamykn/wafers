@@ -7,39 +7,37 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
 
     for mut word_scoring in word_scoring_vec.iter_mut() {
 
-        let (new_word_scoring, is_all_match) = fuzzy_match(input_word.clone(), word_scoring);
+        let is_all_match = fuzzy_match(input_word.clone(), &mut word_scoring);
 
         if is_all_match {
-            return_word_scoreing_vec.push(new_word_scoring.clone());
+            return_word_scoreing_vec.push(word_scoring.clone());
         }
     }
 
     return_word_scoreing_vec 
 }
 
-fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> (word_scoring_struct::WordScoring, bool) {
+fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> bool {
     // すべて一致するもののみ表示する前提の上で対象から外す
     if word_scoring.word.len() < input_word.len() {
-        return (word_scoring_struct::new(word_scoring.word.clone()), false);
+        return false;
     }
 
     // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
 
     // TODO: オプション化
     let mut word_for_search = word_scoring.word.to_lowercase();
-
     let (word_score, is_all_match) = input_word_loop(input_word.clone(), word_for_search);
 
-    word_scoring.score = word_score;
     if is_all_match {
-        // TODO: 不要な気がしてきたので検討
+        word_scoring.score = word_score;
 
         // 距離に対する減点
         let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
         word_scoring.score = word_scoring.score - len_diff;
     }
 
-    (word_scoring.clone(), is_all_match)
+    is_all_match
 }
 
 fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, bool) {
@@ -47,24 +45,24 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
     let mut is_all_match = true;
     let mut next_word_matched_at = 0;
 
-    // 2重重複考慮のための削除のためのbyte_index管理
-    let mut remove_byte_index = byte_index_struct::new();
-
     for input_char in input_word.chars() {
+        // 2重重複考慮のための削除のためのbyte_index管理
+        let mut remove_byte_index = byte_index_struct::new();
 
         let (add_score, new_next_word_matched_at, is_found) = imput_char_loop(input_char, &word_for_search, next_word_matched_at, &mut remove_byte_index);
 
         if !is_found {
-            // どこにもマッチしなければ対象としない
+            // マッチしない文字が存在すれば対象としない
             is_all_match = false;
             break;
         }
 
         word_score = word_score + add_score;
-        next_word_matched_at = new_next_word_matched_at;
 
         // 2重matchをしないように考慮
         word_for_search.drain(remove_byte_index.start..remove_byte_index.end);
+        // drainでindexが詰められるので = で束縛しとく
+        next_word_matched_at = new_next_word_matched_at;
     }
 
     (word_score, is_all_match)
@@ -79,7 +77,6 @@ fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matche
     for (i, search_char) in word_for_search.chars().enumerate()  {
         index = i as i32;
 
-        // TODO: ココらへんはStructなどにして外に出す
         let remove_byte_index_end = remove_byte_index.end.clone();
         remove_byte_index.set_with_start_len(remove_byte_index_end, search_char.len_utf8());
 
@@ -91,12 +88,7 @@ fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matche
         }
     }
 
-    // drainでindexが詰められるので = で束縛しとく
-    // 参照渡しへの借用はより大きいスコープが求められるので
-    // 新しい値作って元の方で束縛し直してます
-    let new_next_word_matched_at = index.clone();
-
-    (add_score, new_next_word_matched_at, is_found)
+    (add_score, index.clone(), is_found)
 }
 
 fn get_score(index: i32, next_word_matched_at: i32) -> i32 {

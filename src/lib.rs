@@ -23,6 +23,8 @@ struct WordList {
 
 #[wasm_bindgen]
 pub fn setSearchWordList(word_list_json: &str) {
+    utils::set_panic_hook();
+
     search::delete_cache();
     let word_list_obj: WordList = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
 
@@ -36,6 +38,8 @@ pub fn setSearchWordList(word_list_json: &str) {
 
 #[wasm_bindgen]
 pub fn setReturnListLength(len: u32) {
+    utils::set_panic_hook();
+
     // 返り値としてほしい個数の設定
     let mut return_match_list_num = search::RETURN_MATCH_LIST_NUM.lock().unwrap();
     *return_match_list_num = len;
@@ -43,6 +47,8 @@ pub fn setReturnListLength(len: u32) {
 
 #[wasm_bindgen]
 pub fn fuzzyMatch(search_str: &str) -> String {
+    utils::set_panic_hook();
+
     let word_scoreing_list = search::search(search_str.to_string());
     let mut found_word_list = WordList{list: Vec::new()};
 

@@ -1,7 +1,7 @@
 /* tslint:disable */
 import * as wasm from './muff_wasm_bg';
 
-let cachedEncoder = new TextEncoder('utf-8');
+let cachedTextEncoder = new TextEncoder('utf-8');
 
 let cachegetUint8Memory = null;
 function getUint8Memory() {
@@ -13,7 +13,9 @@ function getUint8Memory() {
 
 function passStringToWasm(arg) {
 
-    const buf = cachedEncoder.encode(arg);
+    if (typeof(arg) !== 'string') throw new Error('expected a string argument');
+
+    const buf = cachedTextEncoder.encode(arg);
     const ptr = wasm.__wbindgen_malloc(buf.length);
     getUint8Memory().set(buf, ptr);
     return [ptr, buf.length];
@@ -34,18 +36,22 @@ export function setSearchWordList(arg0) {
 
 }
 
+function _assertNum(n) {
+    if (typeof(n) !== 'number') throw new Error('expected a number argument');
+}
 /**
 * @param {number} arg0
 * @returns {void}
 */
 export function setReturnListLength(arg0) {
+    _assertNum(arg0);
     return wasm.setReturnListLength(arg0);
 }
 
-let cachedDecoder = new TextDecoder('utf-8');
+let cachedTextDecoder = new TextDecoder('utf-8');
 
 function getStringFromWasm(ptr, len) {
-    return cachedDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
+    return cachedTextDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
 }
 
 let cachedGlobalArgumentPtr = null;
