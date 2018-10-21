@@ -14,7 +14,7 @@ class Muff {
 	}
 
 	search(inputWord) {
-		return JSON.parse(this.wasm.wazf(inputWord))
+		return JSON.parse(this.wasm.fuzzyMatch(inputWord))
 	}
 }
 

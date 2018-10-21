@@ -1,36 +1,45 @@
 use super::word_scoring_struct;
 use search::byte_index_struct;
 
-pub fn fuzzy_match (mut search_word_list: Vec<word_scoring_struct::WordScoring>, input_word: String) -> Vec<word_scoring_struct::WordScoring> {
-    let mut word_scoreing_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
+// 引数がWordScoringになっているのはキャッシュと同じ型を使わせるため
+pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScoring>, input_word: String) -> Vec<word_scoring_struct::WordScoring> {
+    let mut return_word_scoreing_vec: Vec<word_scoring_struct::WordScoring> = Vec::new();
 
-    for mut word_scoring in search_word_list.iter_mut() {
+    for mut word_scoring in word_scoring_vec.iter_mut() {
 
-        // すべて一致するもののみ表示する前提の上で対象から外す
-        if word_scoring.word.len() < input_word.len() {
-            continue;
-        }
-
-        // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-
-        // TODO: オプション化
-        let mut word_for_search = word_scoring.word.to_lowercase();
-
-        let (word_score, is_all_match) = input_word_loop(input_word.clone(), word_for_search);
-        word_scoring.score = word_score;
+        let (new_word_scoring, is_all_match) = fuzzy_match(input_word.clone(), word_scoring);
 
         if is_all_match {
-            // TODO: 不要な気がしてきたので検討
-
-            // 距離に対する減点
-            let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
-            word_scoring.score = word_scoring.score - len_diff;
-
-            word_scoreing_list.push(word_scoring.clone());
+            return_word_scoreing_vec.push(new_word_scoring.clone());
         }
     }
 
-    word_scoreing_list 
+    return_word_scoreing_vec 
+}
+
+fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> (word_scoring_struct::WordScoring, bool) {
+    // すべて一致するもののみ表示する前提の上で対象から外す
+    if word_scoring.word.len() < input_word.len() {
+        return (word_scoring_struct::new(word_scoring.word.clone()), false);
+    }
+
+    // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
+
+    // TODO: オプション化
+    let mut word_for_search = word_scoring.word.to_lowercase();
+
+    let (word_score, is_all_match) = input_word_loop(input_word.clone(), word_for_search);
+
+    word_scoring.score = word_score;
+    if is_all_match {
+        // TODO: 不要な気がしてきたので検討
+
+        // 距離に対する減点
+        let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
+        word_scoring.score = word_scoring.score - len_diff;
+    }
+
+    (word_scoring.clone(), is_all_match)
 }
 
 fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, bool) {
@@ -63,7 +72,6 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
 
 fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matched_at: i32, remove_byte_index: &mut byte_index_struct::ByteIndex) -> (i32, i32, bool){
     // TODO: 最初にnext_word_matched_atを探し、matchしなければ最初から探す仕組みにしたい
-
     let mut add_score: i32 = 1;
     let mut is_found = false;
     let mut index = 0;
@@ -77,17 +85,7 @@ fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matche
 
         // TODO FZFかなんかはスペースが来たら離れたところのほうが加点高くする仕様があるっぽい
         if input_char == search_char && input_char != ' ' {
-            if index == next_word_matched_at {
-                // 連続したMatchには加点
-                add_score = 3;
-            } else if index > next_word_matched_at {
-                // 順番通りのMatchには加点
-                add_score = 2;
-            } else {
-                // 通常加点
-                add_score = 1;
-            }
-
+            add_score = get_score(index, next_word_matched_at);
             is_found = true;
             break;
         }
@@ -99,4 +97,21 @@ fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matche
     let new_next_word_matched_at = index.clone();
 
     (add_score, new_next_word_matched_at, is_found)
+}
+
+fn get_score(index: i32, next_word_matched_at: i32) -> i32 {
+    let mut add_score: i32 = 1;
+
+    if index == next_word_matched_at {
+        // 連続したMatchには加点
+        add_score = 3;
+    } else if index > next_word_matched_at {
+        // 順番通りのMatchには加点
+        add_score = 2;
+    } else {
+        // 通常加点
+        add_score = 1;
+    }
+
+    return add_score
 }

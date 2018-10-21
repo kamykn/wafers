@@ -38,7 +38,7 @@ pub fn search(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
     let mut search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
     let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
     let search_word_list = get_search_word_list(input_word.clone(), before_search_word_list_mutex.to_vec(), search_result_cache_list_mutex.to_vec());
-    word_scoreing_list = fuzzy_match::fuzzy_match(search_word_list, input_word.clone());
+    word_scoreing_list = fuzzy_match::fuzzy_match_vec(search_word_list, input_word.clone());
 
     // ソート 
     // TODO: オプション化

@@ -14,7 +14,6 @@ extern crate lazy_static;
 mod search;
 mod utils;
 
-use std::str;
 use wasm_bindgen::prelude::*;
 
 #[derive(Serialize, Deserialize)]
@@ -43,7 +42,7 @@ pub fn setReturnListLength(len: u32) {
 }
 
 #[wasm_bindgen]
-pub fn wazf(search_str: &str) -> String {
+pub fn fuzzyMatch(search_str: &str) -> String {
     let word_scoreing_list = search::search(search_str.to_string());
     let mut found_word_list = WordList{list: Vec::new()};
 

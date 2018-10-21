@@ -67,11 +67,11 @@ function getUint32Memory() {
 * @param {string} arg0
 * @returns {string}
 */
-export function wazf(arg0) {
+export function fuzzyMatch(arg0) {
     const [ptr0, len0] = passStringToWasm(arg0);
     const retptr = globalArgumentPtr();
     try {
-        wasm.wazf(retptr, ptr0, len0);
+        wasm.fuzzyMatch(retptr, ptr0, len0);
         const mem = getUint32Memory();
         const rustptr = mem[retptr / 4];
         const rustlen = mem[retptr / 4 + 1];
