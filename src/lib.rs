@@ -30,7 +30,7 @@ pub fn setSearchWordList(word_list_json: &str) {
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
     for word in word_list_obj.list {
-        let word_scoring = search::word_scoring::new(word.to_string());
+        let word_scoring = search::word_scoring_struct::new(word.to_string());
         search_word_list.push(word_scoring);
     }
 }

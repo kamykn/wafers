@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-pub fn new(word: String) -> WordScoring{
+pub fn new(word: String) -> WordScoring {
     WordScoring{
         score: 0,
         word: word

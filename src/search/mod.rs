@@ -2,7 +2,8 @@ use std::sync::Mutex;
 
 mod sort;
 mod fuzzy_match;
-pub mod word_scoring;
+pub mod word_scoring_struct;
+pub mod byte_index_struct;
 
 lazy_static! {
     // 今までのwordはキャッシュ持つ
@@ -11,24 +12,24 @@ lazy_static! {
     // 消される可能性があるのは単語末尾だけではない。単語真ん中もありうる。
 
     // key: 検索語のindex, value: 検索結果キャッシュ
-    pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<Vec<word_scoring::WordScoring>>> = Mutex::new(vec![]);
+    pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<Vec<word_scoring_struct::WordScoring>>> = Mutex::new(vec![]);
     // 検索ワード
     pub static ref BEFORE_SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
 
-    pub static ref SEARCH_WORD_LIST: Mutex<Vec<word_scoring::WordScoring>> = Mutex::new(vec![]);
+    pub static ref SEARCH_WORD_LIST: Mutex<Vec<word_scoring_struct::WordScoring>> = Mutex::new(vec![]);
     pub static ref SEARCH_RESULT_JSON_LEN: Mutex<u32> = Mutex::new(0);
     pub static ref RETURN_MATCH_LIST_NUM: Mutex<u32> = Mutex::new(30);
 }
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
-pub fn search(mut input_word: String) -> Vec<word_scoring::WordScoring> {
+pub fn search(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
 
     // lowercase照合
     // TODO: 大文字マッチさせるかはオプション化させたい
     input_word = input_word.to_lowercase();
 
     // 結果用変数
-    let mut word_scoreing_list: Vec<word_scoring::WordScoring> = Vec::new();
+    let mut word_scoreing_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
     if input_word.len() == 0 {
         return word_scoreing_list;
     }
@@ -60,8 +61,8 @@ pub fn delete_cache() {
 }
 
 // 検索対象のリストを取得
-fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>, search_result_cache_list: Vec<Vec<word_scoring::WordScoring>>) -> Vec<word_scoring::WordScoring> {
-    let mut search_word_list: Vec<word_scoring::WordScoring> = Vec::new();
+fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>, search_result_cache_list: Vec<Vec<word_scoring_struct::WordScoring>>) -> Vec<word_scoring_struct::WordScoring> {
+    let mut search_word_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
 
     // キャッシュ検索
     let (cache_index, is_cache_found) = search_cache(before_search_word_list, input_word.clone());
