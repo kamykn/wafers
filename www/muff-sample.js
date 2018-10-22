@@ -18,15 +18,17 @@ class wazfSample {
 	}
 
 	setToggle() {
+		let switcher = false;
 		document.getElementById("change-wordlist").addEventListener('click', () => {
-			let switcher = false;
 			(() => {
 				console.log('switched');
 				switcher = !switcher
 				if (switcher) {
+					console.log('to JP');
 					this.muff.setSearchWordList(wordlistJP);
 				} else {
-					this.muff.setSearchWordList(wordlist, 20);
+					console.log('to EN');
+					this.muff.setSearchWordList(wordlist);
 				}
 			})();
 		});

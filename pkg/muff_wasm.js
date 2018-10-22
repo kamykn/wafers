@@ -13,8 +13,6 @@ function getUint8Memory() {
 
 function passStringToWasm(arg) {
 
-    if (typeof(arg) !== 'string') throw new Error('expected a string argument');
-
     const buf = cachedTextEncoder.encode(arg);
     const ptr = wasm.__wbindgen_malloc(buf.length);
     getUint8Memory().set(buf, ptr);
@@ -36,15 +34,11 @@ export function setSearchWordList(arg0) {
 
 }
 
-function _assertNum(n) {
-    if (typeof(n) !== 'number') throw new Error('expected a number argument');
-}
 /**
 * @param {number} arg0
 * @returns {void}
 */
 export function setReturnListLength(arg0) {
-    _assertNum(arg0);
     return wasm.setReturnListLength(arg0);
 }
 
