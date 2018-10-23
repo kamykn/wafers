@@ -1,23 +1,26 @@
 use std::cmp::Ordering;
+use std::collections::HashMap;
 
-pub fn new(word: String) -> WordScoring {
+pub fn new(index: i32, wordMap: HashMap<String, String>) -> WordScoring {
     WordScoring{
+        index: index,
         score: 0,
-        word: word
+        wordMap: wordMap 
     }
 }
 
 #[derive(Clone)]
 pub struct WordScoring {
+    pub index: i32,
     pub score: i32,
-    pub word: String,
+    pub wordMap: HashMap<String, String>,
 }
 
 impl PartialOrd for WordScoring {
     fn partial_cmp(&self, other: &WordScoring) -> Option<Ordering> {
-        // スコアが同じであれば文字列のUnicode順
+        // スコアが同じであればindex順
         if self.score == other.score {
-            return self.word.partial_cmp(&other.word);
+            return self.index.partial_cmp(&other.index);
         }
 
         self.score.partial_cmp(&other.score)

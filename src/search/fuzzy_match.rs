@@ -6,7 +6,6 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
     let mut return_word_scoreing_vec: Vec<word_scoring_struct::WordScoring> = Vec::new();
 
     for mut word_scoring in word_scoring_vec.iter_mut() {
-
         let is_all_match = fuzzy_match(input_word.clone(), &mut word_scoring);
 
         if is_all_match {
@@ -18,26 +17,31 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
 }
 
 fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> bool {
-    // すべて一致するもののみ表示する前提の上で対象から外す
-    if word_scoring.word.len() < input_word.len() {
-        return false;
+    let mut return_is_all_match = false;
+    for (_, word) in &word_scoring.wordMap {
+        // すべて一致するもののみ表示する前提の上で対象から外す
+        if word.len() < input_word.len() {
+            return false;
+        }
+
+        // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
+
+        // TODO: オプション化
+        let mut word_for_search = word.to_lowercase();
+        let (word_score, is_all_match) = input_word_loop(input_word.clone(), word_for_search);
+
+        if is_all_match {
+            word_scoring.score = word_score;
+
+            // 距離に対する減点
+            let len_diff = (word.len() - input_word.len()) as i32;
+            word_scoring.score = word_scoring.score - len_diff;
+            return_is_all_match = true;
+            break;
+        }
     }
 
-    // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-
-    // TODO: オプション化
-    let mut word_for_search = word_scoring.word.to_lowercase();
-    let (word_score, is_all_match) = input_word_loop(input_word.clone(), word_for_search);
-
-    if is_all_match {
-        word_scoring.score = word_score;
-
-        // 距離に対する減点
-        let len_diff = (word_scoring.word.len() - input_word.len()) as i32;
-        word_scoring.score = word_scoring.score - len_diff;
-    }
-
-    is_all_match
+    return_is_all_match
 }
 
 fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, bool) {
@@ -92,18 +96,14 @@ fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matche
 }
 
 fn get_score(index: i32, next_word_matched_at: i32) -> i32 {
-    let mut add_score: i32 = 1;
-
     if index == next_word_matched_at {
         // 連続したMatchには加点
-        add_score = 3;
+        return 3;
     } else if index > next_word_matched_at {
         // 順番通りのMatchには加点
-        add_score = 2;
-    } else {
-        // 通常加点
-        add_score = 1;
+        return 2;
     }
 
-    return add_score
+    // 通常加点
+    return 1;
 }

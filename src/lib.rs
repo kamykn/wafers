@@ -15,10 +15,11 @@ mod search;
 mod utils;
 
 use wasm_bindgen::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 struct WordList {
-    list: Vec<String>
+    list: Vec<HashMap<String, String>>
 }
 
 #[wasm_bindgen]
@@ -30,8 +31,9 @@ pub fn setSearchWordList(word_list_json: &str) {
 
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
-    for word in word_list_obj.list {
-        let word_scoring = search::word_scoring_struct::new(word.to_string());
+
+    for (index, wordMap) in word_list_obj.list.iter().enumerate() {
+        let word_scoring = search::word_scoring_struct::new(index as i32, wordMap.clone());
         search_word_list.push(word_scoring);
     }
 }
@@ -49,7 +51,7 @@ pub fn setReturnListLength(len: u32) {
 pub fn fuzzyMatch(search_str: &str) -> String {
     utils::set_panic_hook();
 
-    let word_scoreing_list = search::search(search_str.to_string());
+    let word_scoreing_list = search::fuzzy_match(search_str.to_string());
     let mut found_word_list = WordList{list: Vec::new()};
 
     // TODO デフォルト設定用意する
@@ -59,13 +61,13 @@ pub fn fuzzyMatch(search_str: &str) -> String {
         if word_scoreing_list.len() < return_match_list_num {
             return_match_list_num = word_scoreing_list.len();
         }
-        let mut word_list_list: Vec<String> = Vec::new();
+        let mut word_list_list: Vec<HashMap<String, String>> = Vec::new();
 
         // 無駄にsliceする場合あり(全範囲返すとか)
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
         for word_scorering in sliced_word_scoreling_list {
-            word_list_list.push(word_scorering.word.to_string());
+            word_list_list.push(word_scorering.wordMap.clone());
         }
 
         found_word_list.list = word_list_list;

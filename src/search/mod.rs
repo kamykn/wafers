@@ -22,10 +22,10 @@ lazy_static! {
 }
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
-pub fn search(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
+pub fn fuzzy_match(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
 
     // lowercase照合
-    // TODO: 大文字マッチさせるかはオプション化させたい
+    // TODO: 大文字小文字区別してマッチさせるかはオプション化させたい
     input_word = input_word.to_lowercase();
 
     // 結果用変数
@@ -43,7 +43,7 @@ pub fn search(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
     // ソート 
     // TODO: オプション化
     if word_scoreing_list.len() > 1 {
-        // TODO: スコアがランクに満たない場合早々に切ってしまいたい
+        // TODO: スコアが低いものは早々に切ってしまいたい
         sort::sort(&mut word_scoreing_list);
     }
 
@@ -62,19 +62,15 @@ pub fn delete_cache() {
 
 // 検索対象のリストを取得
 fn get_search_word_list(input_word: String, before_search_word_list: Vec<String>, search_result_cache_list: Vec<Vec<word_scoring_struct::WordScoring>>) -> Vec<word_scoring_struct::WordScoring> {
-    let mut search_word_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
-
     // キャッシュ検索
     let (cache_index, is_cache_found) = search_cache(before_search_word_list, input_word.clone());
 
     // キャッシュがある場合はキャッシュを採用、無い場合はワードリストから作成
     if is_cache_found {
-        search_word_list = search_result_cache_list[cache_index as usize].clone();
-    } else {
-        search_word_list = SEARCH_WORD_LIST.lock().unwrap().to_vec();
-    }
+        return search_result_cache_list[cache_index as usize].clone();
+    } 
 
-    search_word_list
+    SEARCH_WORD_LIST.lock().unwrap().to_vec()
 }
 
 // キャッシュを探す
