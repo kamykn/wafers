@@ -6,7 +6,7 @@ function main() {
 
 	wazfSample = new wazfSample(muff);
 	wazfSample.muff.setReturnListLength(20);
-	wazfSample.muff.setSearchWordList(wordlist);
+	wazfSample.muff.setSearchWordList(wazfSample.listToHashList(wordlist));
 
 	wazfSample.setForm();
 	wazfSample.setToggle();
@@ -22,16 +22,28 @@ class wazfSample {
 		document.getElementById("change-wordlist").addEventListener('click', () => {
 			(() => {
 				console.log('switched');
-				switcher = !switcher
+				switcher = !switcher;
 				if (switcher) {
 					console.log('to JP');
-					this.muff.setSearchWordList(wordlistJP);
+					this.muff.setSearchWordList(this.listToHashList(wordlistJP));
 				} else {
 					console.log('to EN');
-					this.muff.setSearchWordList(wordlist);
+					this.muff.setSearchWordList(this.listToHashList(wordlist));
 				}
 			})();
 		});
+	}
+
+	listToHashList(list) {
+		let hashList = [];
+		list.forEach(function (value, index) {
+			hashList.push({
+				word: value,
+				index: "" + index
+			});
+		});
+
+		return hashList
 	}
 
 	setForm() {
@@ -59,7 +71,7 @@ class wazfSample {
 			result.list.forEach((word) => {
 				let $li = document.createElement('li');
 				$li.classList.add('result-field-li');
-				let wordNode = document.createTextNode(word);
+				let wordNode = document.createTextNode(word.word + '(' + word.index + ')');
 				$li.appendChild(wordNode);
 				$resultField.appendChild($li); // fragmentの追加する
 			});
