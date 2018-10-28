@@ -1,6 +1,6 @@
 [package]
 name = "muff-wasm"
-version = "0.1.1"
+version = "0.2.2"
 authors = ["kamykn <to.kamykn@gmail.com>"]
 
 [lib]
