@@ -34,8 +34,8 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
             word_scoring.score = word_score;
 
             // 距離に対する減点
-            let len_diff = (word.len() - input_word.len()) as i32;
-            word_scoring.score = word_scoring.score - len_diff;
+            // let len_diff = (word.len() - input_word.len()) as i32;
+            // word_scoring.score = word_scoring.score - len_diff;
             return_is_all_match = true;
             break;
         }
