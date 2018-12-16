@@ -50,8 +50,9 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
     let mut next_word_matched_at = 0;
 
     for input_char in input_word.chars() {
-        // 現状、空白は検索結果に左右しない
         if input_char.is_whitespace() {
+            // 連続matchのボーナスをクリアする
+            next_word_matched_at = -1;
             continue;
         }
 
@@ -77,7 +78,7 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
     (word_score, is_all_match)
 }
 
-fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matched_at: i32, remove_byte_index: &mut byte_index_struct::ByteIndex) -> (i32, i32, bool){
+fn imput_char_loop(input_char: char, word_for_search: &String, next_word_matched_at: i32, remove_byte_index: &mut byte_index_struct::ByteIndex) -> (i32, i32, bool){
     // TODO: 最初にnext_word_matched_atを探し、matchしなければ最初から探す仕組みにしたい
     let mut add_score: i32 = 1;
     let mut is_found = false;
