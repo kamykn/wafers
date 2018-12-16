@@ -54,11 +54,7 @@
 /******/ 	var wasmImportObjects = {
 /******/ 		"../pkg/muff_wasm_bg.wasm": function() {
 /******/ 			return {
-/******/ 				"./muff_wasm": {
-/******/ 					"__wbindgen_throw": function(p0i32,p1i32) {
-/******/ 						return installedModules["../pkg/muff_wasm.js"].exports["__wbindgen_throw"](p0i32,p1i32);
-/******/ 					}
-/******/ 				}
+/******/
 /******/ 			};
 /******/ 		},
 /******/ 	};
@@ -157,7 +153,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/muff_wasm_bg.wasm":"e1e55595b5204f9a4d3f"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/muff_wasm_bg.wasm":"d7e4e2c41fff4b30b049"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {

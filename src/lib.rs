@@ -11,6 +11,11 @@ extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
 
+#[wasm_bindgen]
+extern {
+    fn alert(s: &str);
+}
+
 mod search;
 mod utils;
 

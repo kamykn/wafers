@@ -11,19 +11,23 @@ function getUint8Memory() {
     return cachegetUint8Memory;
 }
 
+let WASM_VECTOR_LEN = 0;
+
 function passStringToWasm(arg) {
 
     const buf = cachedTextEncoder.encode(arg);
     const ptr = wasm.__wbindgen_malloc(buf.length);
     getUint8Memory().set(buf, ptr);
-    return [ptr, buf.length];
+    WASM_VECTOR_LEN = buf.length;
+    return ptr;
 }
 /**
 * @param {string} arg0
 * @returns {void}
 */
 export function setSearchWordList(arg0) {
-    const [ptr0, len0] = passStringToWasm(arg0);
+    const ptr0 = passStringToWasm(arg0);
+    const len0 = WASM_VECTOR_LEN;
     try {
         return wasm.setSearchWordList(ptr0, len0);
 
@@ -68,7 +72,8 @@ function getUint32Memory() {
 * @returns {string}
 */
 export function fuzzyMatch(arg0) {
-    const [ptr0, len0] = passStringToWasm(arg0);
+    const ptr0 = passStringToWasm(arg0);
+    const len0 = WASM_VECTOR_LEN;
     const retptr = globalArgumentPtr();
     try {
         wasm.fuzzyMatch(retptr, ptr0, len0);
@@ -86,9 +91,5 @@ export function fuzzyMatch(arg0) {
 
     }
 
-}
-
-export function __wbindgen_throw(ptr, len) {
-    throw new Error(getStringFromWasm(ptr, len));
 }
 

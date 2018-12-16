@@ -50,6 +50,11 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
     let mut next_word_matched_at = 0;
 
     for input_char in input_word.chars() {
+        // 現状、空白は検索結果に左右しない
+        if input_char.is_whitespace() {
+            continue;
+        }
+
         // 2重重複考慮のための削除のためのbyte_index管理
         let mut remove_byte_index = byte_index_struct::new();
 
@@ -85,7 +90,7 @@ fn imput_char_loop (input_char: char, word_for_search: &String, next_word_matche
         remove_byte_index.set_with_start_len(remove_byte_index_end, search_char.len_utf8());
 
         // TODO FZFかなんかはスペースが来たら離れたところのほうが加点高くする仕様があるっぽい
-        if input_char == search_char && input_char != ' ' {
+        if input_char == search_char {
             add_score = get_score(index, next_word_matched_at);
             is_found = true;
             break;
