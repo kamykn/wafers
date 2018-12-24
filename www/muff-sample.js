@@ -1,15 +1,15 @@
-import { muff } from "./index";
+import { muff } from "./index"
 
 function main() {
 	console.log(muff)
 	console.log(wordlist)
 
-	wazfSample = new wazfSample(muff);
-	wazfSample.muff.setReturnListLength(20);
-	wazfSample.muff.setSearchWordList(wazfSample.listToHashList(wordlist));
+	wazfSample = new wazfSample(muff)
+	wazfSample.muff.setReturnListLength(20)
+	wazfSample.muff.setSearchWordList(wazfSample.listToHashList(wordlist))
 
-	wazfSample.setForm();
-	wazfSample.setToggle();
+	wazfSample.setForm()
+	wazfSample.setToggle()
 }
 
 class wazfSample {
@@ -18,65 +18,73 @@ class wazfSample {
 	}
 
 	setToggle() {
-		let switcher = false;
+		let switcher = false
 		document.getElementById("change-wordlist").addEventListener('click', () => {
 			(() => {
-				console.log('switched');
-				switcher = !switcher;
+				console.log('switched')
+				switcher = !switcher
 				if (switcher) {
-					console.log('to JP');
-					this.muff.setSearchWordList(this.listToHashList(wordlistJP));
+					console.log('to JP')
+					this.muff.setSearchWordList(this.listToHashList(wordlistJP))
+					this.search()
 				} else {
-					console.log('to EN');
-					this.muff.setSearchWordList(this.listToHashList(wordlist));
+					console.log('to EN')
+					this.muff.setSearchWordList(this.listToHashList(wordlist))
+					this.search()
 				}
-			})();
-		});
+			})()
+		})
 	}
 
 	listToHashList(list) {
-		let hashList = [];
+		let hashList = []
 		list.forEach(function (value, index) {
 			hashList.push({
 				word: value,
 				index: "" + index
-			});
-		});
+			})
+		})
 
 		return hashList
 	}
 
 	setForm() {
 		document.getElementById("wasm-fzf").addEventListener('keyup', () => {
-			const value = document.getElementById("wasm-fzf").value;
-
-			const startTime = performance.now(); // 開始時間
-
-			const result = this.muff.search(value);
-
-			const endTime = performance.now(); // 終了時間
-			console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
-
-			const $resultField = document.getElementById('result-field');
-			const $resultFieldWord = document.getElementsByClassName('result-field-li');
-
-			if ($resultFieldWord.length > 0) {
-				let len = $resultFieldWord.length;
-				for (let $i = 0; $i < len; $i++) {
-					// 要素が減っていくため0個目を削除
-					$resultField.removeChild($resultFieldWord[0]);
-				}
-			}
-
-			result.list.forEach((word) => {
-				let $li = document.createElement('li');
-				$li.classList.add('result-field-li');
-				let wordNode = document.createTextNode(word.word + '(' + word.index + ')');
-				$li.appendChild(wordNode);
-				$resultField.appendChild($li); // fragmentの追加する
-			});
-		});
+			this.search()
+		})
 	}
+
+	search() {
+		const value = document.getElementById("wasm-fzf").value
+
+		const startTime = performance.now(); // 開始時間
+
+		const result = this.muff.search(value)
+
+		const endTime = performance.now(); // 終了時間
+		console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
+
+		const $resultField = document.getElementById('result-field')
+		const $resultFieldWord = document.getElementsByClassName('result-field-li')
+
+		if ($resultFieldWord.length > 0) {
+			let len = $resultFieldWord.length
+			for (let $i = 0; $i < len; $i++) {
+				// 要素が減っていくため0個目を削除
+				$resultField.removeChild($resultFieldWord[0])
+			}
+		}
+
+		result.list.forEach((word) => {
+			let $li = document.createElement('li')
+			$li.classList.add('result-field-li')
+			let wordNode = document.createTextNode(word.word + '(' + word.index + ')')
+			$li.appendChild(wordNode)
+			$resultField.appendChild($li); // fragmentの追加する
+		})
+
+	}
+
 }
 
 let wordlistJP = [
@@ -95,7 +103,7 @@ let wordlistJP = [
 'ハイフン-',
 '記号？',
 '記号・',
-];
+]
 
 let wordlist = [
 'the',
@@ -2899,6 +2907,6 @@ let wordlist = [
 'ashamed',
 'found',
 'thirst',
-];
+]
 
-main();
+main()

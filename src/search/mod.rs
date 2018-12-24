@@ -13,11 +13,11 @@ lazy_static! {
 
     // key: 検索語のindex, value: 検索結果キャッシュ
     pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<Vec<word_scoring_struct::WordScoring>>> = Mutex::new(vec![]);
-    // 検索ワード
+    // 検索用文字列の履歴
     pub static ref BEFORE_SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
-
+    // 検索対象文字列
     pub static ref SEARCH_WORD_LIST: Mutex<Vec<word_scoring_struct::WordScoring>> = Mutex::new(vec![]);
-    pub static ref SEARCH_RESULT_JSON_LEN: Mutex<u32> = Mutex::new(0);
+    //  マッチした中から返す数の設定
     pub static ref RETURN_MATCH_LIST_NUM: Mutex<u32> = Mutex::new(30);
 }
 
