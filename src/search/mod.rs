@@ -23,7 +23,6 @@ lazy_static! {
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
 pub fn fuzzy_match(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
-
     // lowercase照合
     // TODO: 大文字小文字区別してマッチさせるかはオプション化させたい
     input_word = input_word.to_lowercase();

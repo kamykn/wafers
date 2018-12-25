@@ -1,11 +1,11 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-pub fn new(index: i32, wordMap: HashMap<String, String>) -> WordScoring {
+pub fn new(index: i32, word_map: HashMap<String, String>) -> WordScoring {
     WordScoring{
         index: index,
         score: 0,
-        wordMap: wordMap 
+        word_map: word_map 
     }
 }
 
@@ -13,7 +13,7 @@ pub fn new(index: i32, wordMap: HashMap<String, String>) -> WordScoring {
 pub struct WordScoring {
     pub index: i32,
     pub score: i32,
-    pub wordMap: HashMap<String, String>,
+    pub word_map: HashMap<String, String>,
 }
 
 impl PartialOrd for WordScoring {

@@ -37,8 +37,8 @@ pub fn setSearchWordList(word_list_json: &str) {
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
 
-    for (index, wordMap) in word_list_obj.list.iter().enumerate() {
-        let word_scoring = search::word_scoring_struct::new(index as i32, wordMap.clone());
+    for (index, word_map) in word_list_obj.list.iter().enumerate() {
+        let word_scoring = search::word_scoring_struct::new(index as i32, word_map.clone());
         search_word_list.push(word_scoring);
     }
 }
@@ -72,7 +72,7 @@ pub fn fuzzyMatch(search_str: &str) -> String {
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
         for word_scorering in sliced_word_scoreling_list {
-            word_list_list.push(word_scorering.wordMap.clone());
+            word_list_list.push(word_scorering.word_map.clone());
         }
 
         found_word_list.list = word_list_list;

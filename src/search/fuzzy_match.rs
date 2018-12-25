@@ -18,10 +18,11 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
 
 fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> bool {
     let mut return_is_all_match = false;
-    for (_, word) in &word_scoring.wordMap {
+
+    for (_, word) in &word_scoring.word_map {
         // すべて一致するもののみ表示する前提の上で対象から外す
         if word.len() < input_word.len() {
-            return false;
+            continue;
         }
 
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
@@ -78,7 +79,7 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
     (word_score, is_all_match)
 }
 
-fn imput_char_loop(input_char: char, word_for_search: &String, next_word_matched_at: i32, remove_byte_index: &mut byte_index_struct::ByteIndex) -> (i32, i32, bool){
+fn imput_char_loop(input_char: char, word_for_search: &String, next_word_matched_at: i32, remove_byte_index: &mut byte_index_struct::ByteIndex) -> (i32, i32, bool) {
     // TODO: 最初にnext_word_matched_atを探し、matchしなければ最初から探す仕組みにしたい
     let mut add_score: i32 = 1;
     let mut is_found = false;
