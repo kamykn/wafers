@@ -17,6 +17,7 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
 
 fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> (&mut super::word_scoring_struct::WordScoring, bool) {
     let mut is_match = false;
+    let highlighted_word = "";
 
     for (index, word) in &word_scoring.word_map {
         // すべて一致するもののみ表示する前提の上で対象から外す
@@ -32,7 +33,9 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
 
         if is_match {
             word_scoring.score = score;
-            word_scoring.highlighted_word_map[index] = highlighted_word;
+            let mut highlighted_word_clone = &mut highlighted_word.clone();
+            let mut mut_highlighted_word = word_scoring.highlighted_word_map.get_mut(index).unwrap();
+            mut_highlighted_word = &mut highlighted_word_clone;
 
             // 距離に対する減点
             // let len_diff = (word.len() - input_word.len()) as i32;
@@ -44,7 +47,7 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
     (word_scoring, is_match)
 }
 
-fn input_word_loop(input_word: String, mut check_word: String) -> (String, i32, bool) {
+fn input_word_loop(input_word: String, check_word: String) -> (String, i32, bool) {
     let mut score: i32 = 0;
     let mut is_match = true;
     let mut next_word_matched_at = 0;
@@ -57,7 +60,7 @@ fn input_word_loop(input_word: String, mut check_word: String) -> (String, i32, 
             continue;
         }
 
-        let (add_score, word_matched_at, is_found) = imput_char_loop(input_char, &check_word, next_word_matched_at, matched_index_list);
+        let (add_score, mut word_matched_at, is_found) = imput_char_loop(input_char, &check_word, next_word_matched_at, &matched_index_list);
 
         if !is_found {
             // マッチしない文字が存在すれば対象としない
@@ -68,26 +71,32 @@ fn input_word_loop(input_word: String, mut check_word: String) -> (String, i32, 
         score = score + add_score;
 
         // match部分をhighlight用の文字列で囲んだ文字列を生成
-        matched_index_list.push(word_matched_at);
-        word_matched_at = word_matched_at + 1;
+        matched_index_list.push(word_matched_at.clone());
+        next_word_matched_at = word_matched_at + 1;
     }
 
-    /////////////
+    let highlighted_word = highlight_word(check_word, matched_index_list);
 
+    (highlighted_word, score, is_match)
+}
+
+fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> String {
     let mut highlighted_word: Vec<char> = Vec::new();
-    let before_matched_index = 0;
     matched_index_list.sort_unstable();
     let mut is_continuous_match = false;
 
     let open_tag = "<b>";
     let close_tag = "</b>";
+    let mut is_match = false;
 
     for (i, c)in check_word.chars().enumerate() {
-        if matched_index_list.contains(i as &i32) && is_continuous_match {
+        let index = i as i32;
+        if matched_index_list.contains(&index) && is_continuous_match {
             // 連続マッチでなければマッチしたワードの前に開始タグを追加
             for open_tag_char in  open_tag.chars() {
                 highlighted_word.push(open_tag_char);
             }
+            is_match = true;
         } 
 
         highlighted_word.push(c);
@@ -95,22 +104,22 @@ fn input_word_loop(input_word: String, mut check_word: String) -> (String, i32, 
         if is_continuous_match {
             // マッチが続いている場合閉じるかチェック
       
-            if !matched_index_list.contains(i as &i32) || i != check_word.chars().count() as usize {
+            if !matched_index_list.contains(&index) || i != check_word.chars().count() as usize {
                 // マッチでなければ || 最後のループなら終了タグ追加
                 for close_tag_char in  close_tag.chars() {
                     highlighted_word.push(close_tag_char);
                 }
+                is_match = false;
             }
         }
 
-        is_continuous_match = matched_index_list.contains(i as &i32);
-        before_matched_index = i;
+        is_continuous_match = is_match;
     }
 
-    (String::from_iter(highlighted_word), score, is_match)
+    highlighted_word.into_iter().collect()
 }
 
-fn imput_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, mut matched_index_list: Vec<i32>) -> (i32, i32, bool) {
+fn imput_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, matched_index_list: &Vec<i32>) -> (i32, i32, bool) {
     // TODO: 最初にnext_word_matched_atを探し、matchしなければ最初から探す仕組みにしたい
     let mut add_score: i32 = 1;
     let mut is_found = false;
@@ -120,7 +129,7 @@ fn imput_char_loop(input_char: char, check_word: &String, next_word_matched_at: 
         index = i as i32;
         
         // 元のワードのindexを詰めたくないのでループ中にskipしている
-        if matched_index_list.contain(i) {
+        if matched_index_list.contains(&index) {
             continue;
         }
 

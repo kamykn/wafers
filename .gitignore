@@ -3,3 +3,4 @@ target/
 Cargo.lock
 node_modules
 wasm-pack.log
+**/*.swp

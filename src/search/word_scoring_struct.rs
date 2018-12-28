@@ -5,7 +5,7 @@ pub fn new(index: i32, word_map: HashMap<String, String>) -> WordScoring {
     WordScoring{
         index: index,
         score: 0,
-        word_map: word_map ,
+        word_map: word_map.clone() ,
         highlighted_word_map: word_map 
     }
 }
