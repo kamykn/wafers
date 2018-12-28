@@ -1,14 +1,13 @@
 use super::word_scoring_struct;
-use search::byte_index_struct;
 
 // 引数がWordScoringになっているのはキャッシュと同じ型を使わせるため
 pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScoring>, input_word: String) -> Vec<word_scoring_struct::WordScoring> {
     let mut return_word_scoreing_vec: Vec<word_scoring_struct::WordScoring> = Vec::new();
 
     for mut word_scoring in word_scoring_vec.iter_mut() {
-        let is_all_match = fuzzy_match(input_word.clone(), &mut word_scoring);
+        let (word_scoring, is_match) = fuzzy_match(input_word.clone(), &mut word_scoring);
 
-        if is_all_match {
+        if is_match {
             return_word_scoreing_vec.push(word_scoring.clone());
         }
     }
@@ -16,10 +15,10 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
     return_word_scoreing_vec 
 }
 
-fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> bool {
-    let mut return_is_all_match = false;
+fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> (&mut super::word_scoring_struct::WordScoring, bool) {
+    let mut is_match = false;
 
-    for (_, word) in &word_scoring.word_map {
+    for (index, word) in &word_scoring.word_map {
         // すべて一致するもののみ表示する前提の上で対象から外す
         if word.len() < input_word.len() {
             continue;
@@ -28,27 +27,28 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
 
         // TODO: オプション化
-        let mut word_for_search = word.to_lowercase();
-        let (word_score, is_all_match) = input_word_loop(input_word.clone(), word_for_search);
+        let mut check_word = word.to_lowercase();
+        let (highlighted_word, score, is_match) = input_word_loop(input_word.clone(), check_word);
 
-        if is_all_match {
-            word_scoring.score = word_score;
+        if is_match {
+            word_scoring.score = score;
+            word_scoring.highlighted_word_map[index] = highlighted_word;
 
             // 距離に対する減点
             // let len_diff = (word.len() - input_word.len()) as i32;
             // word_scoring.score = word_scoring.score - len_diff;
-            return_is_all_match = true;
             break;
         }
     }
 
-    return_is_all_match
+    (word_scoring, is_match)
 }
 
-fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, bool) {
-    let mut word_score: i32 = 0;
-    let mut is_all_match = true;
+fn input_word_loop(input_word: String, mut check_word: String) -> (String, i32, bool) {
+    let mut score: i32 = 0;
+    let mut is_match = true;
     let mut next_word_matched_at = 0;
+    let mut matched_index_list: Vec<i32> = Vec::new();
 
     for input_char in input_word.chars() {
         if input_char.is_whitespace() {
@@ -57,39 +57,72 @@ fn input_word_loop(input_word: String, mut word_for_search: String) -> (i32, boo
             continue;
         }
 
-        // 2重重複考慮のための削除のためのbyte_index管理
-        let mut remove_byte_index = byte_index_struct::new();
-
-        let (add_score, new_next_word_matched_at, is_found) = imput_char_loop(input_char, &word_for_search, next_word_matched_at, &mut remove_byte_index);
+        let (add_score, word_matched_at, is_found) = imput_char_loop(input_char, &check_word, next_word_matched_at, matched_index_list);
 
         if !is_found {
             // マッチしない文字が存在すれば対象としない
-            is_all_match = false;
+            is_match = false;
             break;
         }
 
-        word_score = word_score + add_score;
+        score = score + add_score;
 
-        // 2重matchをしないように考慮
-        word_for_search.drain(remove_byte_index.start..remove_byte_index.end);
-        // drainでindexが詰められるので = で束縛しとく
-        next_word_matched_at = new_next_word_matched_at;
+        // match部分をhighlight用の文字列で囲んだ文字列を生成
+        matched_index_list.push(word_matched_at);
+        word_matched_at = word_matched_at + 1;
     }
 
-    (word_score, is_all_match)
+    /////////////
+
+    let mut highlighted_word: Vec<char> = Vec::new();
+    let before_matched_index = 0;
+    matched_index_list.sort_unstable();
+    let mut is_continuous_match = false;
+
+    let open_tag = "<b>";
+    let close_tag = "</b>";
+
+    for (i, c)in check_word.chars().enumerate() {
+        if matched_index_list.contains(i as &i32) && is_continuous_match {
+            // 連続マッチでなければマッチしたワードの前に開始タグを追加
+            for open_tag_char in  open_tag.chars() {
+                highlighted_word.push(open_tag_char);
+            }
+        } 
+
+        highlighted_word.push(c);
+        
+        if is_continuous_match {
+            // マッチが続いている場合閉じるかチェック
+      
+            if !matched_index_list.contains(i as &i32) || i != check_word.chars().count() as usize {
+                // マッチでなければ || 最後のループなら終了タグ追加
+                for close_tag_char in  close_tag.chars() {
+                    highlighted_word.push(close_tag_char);
+                }
+            }
+        }
+
+        is_continuous_match = matched_index_list.contains(i as &i32);
+        before_matched_index = i;
+    }
+
+    (String::from_iter(highlighted_word), score, is_match)
 }
 
-fn imput_char_loop(input_char: char, word_for_search: &String, next_word_matched_at: i32, remove_byte_index: &mut byte_index_struct::ByteIndex) -> (i32, i32, bool) {
+fn imput_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, mut matched_index_list: Vec<i32>) -> (i32, i32, bool) {
     // TODO: 最初にnext_word_matched_atを探し、matchしなければ最初から探す仕組みにしたい
     let mut add_score: i32 = 1;
     let mut is_found = false;
     let mut index = 0;
 
-    for (i, search_char) in word_for_search.chars().enumerate()  {
+    for (i, search_char) in check_word.chars().enumerate()  {
         index = i as i32;
-
-        let remove_byte_index_end = remove_byte_index.end.clone();
-        remove_byte_index.set_with_start_len(remove_byte_index_end, search_char.len_utf8());
+        
+        // 元のワードのindexを詰めたくないのでループ中にskipしている
+        if matched_index_list.contain(i) {
+            continue;
+        }
 
         // TODO FZFかなんかはスペースが来たら離れたところのほうが加点高くする仕様があるっぽい
         if input_char == search_char {
