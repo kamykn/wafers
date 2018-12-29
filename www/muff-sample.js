@@ -75,10 +75,15 @@ class wazfSample {
 			}
 		}
 
-		result.list.forEach((word) => {
+		result.forEach((result) => {
+			console.log(result)
 			let $li = document.createElement('li')
 			$li.classList.add('result-field-li')
-			let wordNode = document.createTextNode(word.word + '(' + word.index + ')')
+			let wordNode = document.createTextNode(
+				result.matches.word + 
+				'(' + result.matches.index + ') -> ' + 
+				result.highlighteds.word + 
+				'(' + result.highlighteds.index + ')' )
 			$li.appendChild(wordNode)
 			$resultField.appendChild($li); // fragmentの追加する
 		})

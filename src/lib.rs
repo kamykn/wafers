@@ -19,8 +19,9 @@ use wasm_bindgen::prelude::*;
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
-struct WordList {
-    list: Vec<HashMap<String, String>>
+struct ResultData {
+    matches: HashMap<String, String>,
+    highlighteds: HashMap<String, String>
 }
 
 #[wasm_bindgen]
@@ -28,12 +29,12 @@ pub fn setSearchWordList(word_list_json: &str) {
     utils::set_panic_hook();
 
     search::delete_cache();
-    let word_list_obj: WordList = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
+    let word_list_obj: Vec<HashMap<String, String>> = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
 
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
 
-    for (index, word_map) in word_list_obj.list.iter().enumerate() {
+    for (index, word_map) in word_list_obj.iter().enumerate() {
         let word_scoring = search::word_scoring_struct::new(index as i32, word_map.clone());
         search_word_list.push(word_scoring);
     }
@@ -53,7 +54,7 @@ pub fn fuzzyMatch(search_str: &str) -> String {
     utils::set_panic_hook();
 
     let word_scoreing_list = search::fuzzy_match(search_str.to_string());
-    let mut found_word_list = WordList{list: Vec::new()};
+    let mut result_list = Vec::new();
 
     // TODO デフォルト設定用意する
     let mut return_match_list_num = *search::RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
@@ -62,19 +63,21 @@ pub fn fuzzyMatch(search_str: &str) -> String {
         if word_scoreing_list.len() < return_match_list_num {
             return_match_list_num = word_scoreing_list.len();
         }
-        let mut word_list_list: Vec<HashMap<String, String>> = Vec::new();
+        let mut result_data_list: Vec<ResultData> = Vec::new();
 
-        // 無駄にsliceする場合あり(全範囲返すとか)
+        // NOTE: 無駄にsliceする場合あり(全範囲返すとか)
         let sliced_word_scoreling_list = &word_scoreing_list[..return_match_list_num];
 
         for word_scorering in sliced_word_scoreling_list {
-            word_list_list.push(word_scorering.word_map.clone());
+            let result = ResultData {
+                matches: word_scorering.word_map.clone(), 
+                highlighteds: word_scorering.highlighted_word_map.clone()
+            };
+            result_list.push(result);
         }
-
-        found_word_list.list = word_list_list;
     }
 
-    let found_word_list_json = serde_json::to_string(&found_word_list).unwrap();
+    let result_list_json = serde_json::to_string(&result_list).unwrap();
 
-    found_word_list_json
+    result_list_json
 }

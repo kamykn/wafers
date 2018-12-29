@@ -104,9 +104,7 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> Strin
             is_match = true;
         } else if is_continuous_match {
             // マッチが続いている場合閉じるかチェック
-      
-            if !matched_index_list.contains(&index) || i != check_word.chars().count() as usize {
-                // マッチでなければ || 最後のループなら終了タグ追加
+            if !matched_index_list.contains(&index) {
                 for close_tag_char in  close_tag.chars() {
                     highlighted_word.push(close_tag_char);
                 }
@@ -116,6 +114,13 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> Strin
 
         highlighted_word.push(c);
         is_continuous_match = is_match;
+    }
+
+    if is_continuous_match {
+        // マッチが続いている場合終了タグ追加
+        for close_tag_char in  close_tag.chars() {
+            highlighted_word.push(close_tag_char);
+        }
     }
 
     highlighted_word.into_iter().collect()
