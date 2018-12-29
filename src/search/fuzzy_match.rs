@@ -127,20 +127,39 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> Strin
 }
 
 fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, matched_index_list: &Vec<i32>) -> (i32, i32, bool) {
-    // TODO: 最初にnext_word_matched_atを探し、matchしなければ最初から探す仕組みにしたい
     let mut add_score: i32 = 1;
     let mut index = 0;
     let mut is_match = false;
+
+    // 最初にnext_word_matched_atを探し、matchしなければ最初から探す
+    if next_word_matched_at >= 0 {
+        let (add_score, next_word_matched_at, is_match) =  match check_word.chars().nth(next_word_matched_at as usize) {
+            Some(c) => {
+                if input_char == c {
+                    add_score = get_score(next_word_matched_at, next_word_matched_at);
+                    return (add_score, next_word_matched_at, true);
+                }
+
+                (0, next_word_matched_at, false)
+            },
+            None => (0, next_word_matched_at, false)
+        };
+
+        if is_match {
+            return (add_score, next_word_matched_at, is_match);
+        }
+    }
 
     for (i, search_char) in check_word.chars().enumerate()  {
         index = i as i32;
         
         // 元のワードのindexを詰めたくないのでループ中にskipしている
-        if matched_index_list.contains(&index) {
+        // 次にマッチするワードはすでにチェック済みなのでcontinue
+        if matched_index_list.contains(&index) || (next_word_matched_at >= 0 && next_word_matched_at == index) {
             continue;
         }
 
-        // TODO FZFかなんかはスペースが来たら離れたところのほうが加点高くする仕様があるっぽい
+        // TODO FZFかなんかはスペースが来たら離れたところのほうをmatchさせるような仕様があるっぽい
         if input_char == search_char {
             add_score = get_score(index, next_word_matched_at);
             is_match = true;
