@@ -1,35 +1,46 @@
-import { muff } from "./index"
+import * as Comlink from 'comlinkjs'
+import "@babel/polyfill"
+// Your environment may also support transparent rewriting of commonJS to ES6:
+import ProxyPolyfill from 'proxy-polyfill/src/proxy';
 
-function main() {
-	console.log(muff)
+
+const Muff = Comlink.proxy(new Worker('./worker.js', { type: 'module' }))
+
+async function init() {
+	await Muff.initialize()
+	console.log(Muff)
 	console.log(wordlist)
 
-	wazfSample = new wazfSample(muff)
-	wazfSample.muff.setReturnListLength(20)
-	wazfSample.muff.setSearchWordList(wazfSample.listToHashList(wordlist))
+	console.log(111)
+	wazfSample = new wazfSample(Muff)
+	console.log(112)
+	await wazfSample.Muff.setReturnListLength(20)
+	console.log(113)
+	await wazfSample.Muff.setSearchWordList(wazfSample.listToHashList(wordlist))
+	console.log(114)
 
 	wazfSample.setForm()
 	wazfSample.setToggle()
 }
 
 class wazfSample {
-	constructor (muff) {
-		this.muff = muff
+	constructor (Muff) {
+		this.Muff = Muff
 	}
 
 	setToggle() {
 		let switcher = false
 		document.getElementById("change-wordlist").addEventListener('click', () => {
-			(() => {
+			(async () => {
 				console.log('switched')
 				switcher = !switcher
 				if (switcher) {
 					console.log('to JP')
-					this.muff.setSearchWordList(this.listToHashList(wordlistJP))
+					await this.Muff.setSearchWordList(this.listToHashList(wordlistJP))
 					this.search()
 				} else {
 					console.log('to EN')
-					this.muff.setSearchWordList(this.listToHashList(wordlist))
+					await this.Muff.setSearchWordList(this.listToHashList(wordlist))
 					this.search()
 				}
 			})()
@@ -38,7 +49,7 @@ class wazfSample {
 
 	listToHashList(list) {
 		let hashList = []
-		list.forEach(function (value, index) {
+		list.forEach((value, index) => {
 			hashList.push({
 				word: value,
 				index: "" + index
@@ -54,12 +65,12 @@ class wazfSample {
 		})
 	}
 
-	search() {
+	async search() {
 		const value = document.getElementById("wasm-fzf").value
 
 		const startTime = performance.now(); // 開始時間
 
-		const result = this.muff.search(value)
+		const result = await this.Muff.search(value)
 
 		const endTime = performance.now(); // 終了時間
 		console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
@@ -2914,4 +2925,4 @@ let wordlist = [
 'thirst',
 ]
 
-main()
+init()

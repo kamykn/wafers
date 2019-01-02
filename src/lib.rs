@@ -29,12 +29,12 @@ pub fn setSearchWordList(word_list_json: &str) {
     utils::set_panic_hook();
 
     search::delete_cache();
-    let word_list_obj: Vec<HashMap<String, String>> = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
+    let word_map_list: Vec<HashMap<String, String>> = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
 
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
 
-    for (index, word_map) in word_list_obj.iter().enumerate() {
+    for (index, word_map) in word_map_list.iter().enumerate() {
         let word_scoring = search::word_scoring_struct::new(index as i32, word_map.clone());
         search_word_list.push(word_scoring);
     }
