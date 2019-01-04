@@ -5,13 +5,12 @@ class Muff {
 		this.wasm = wasm
 	}
 
-	async setReturnListLength(listCount) {
-		console.log(1)
-		await this.wasm.setReturnListLength(listCount)
+	setReturnListLength(listCount) {
+		this.wasm.setReturnListLength(listCount)
 	}
 
-	async setSearchWordList(searchWordList) {
-		await this.wasm.setSearchWordList(JSON.stringify(searchWordList))
+	setSearchWordList(searchWordList) {
+		this.wasm.setSearchWordList(JSON.stringify(searchWordList))
 	}
 
 	search(inputWord) {
@@ -19,6 +18,4 @@ class Muff {
 	}
 }
 
-let muff = new Muff(wasm)
-
-export { muff }
+export default new Muff(wasm)

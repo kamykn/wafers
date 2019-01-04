@@ -1,23 +1,14 @@
 import * as Comlink from 'comlinkjs'
-import "@babel/polyfill"
 // Your environment may also support transparent rewriting of commonJS to ES6:
-import ProxyPolyfill from 'proxy-polyfill/src/proxy';
+// import ProxyPolyfill from 'proxy-polyfill/src/proxy';
 
-
-const Muff = Comlink.proxy(new Worker('./worker.js', { type: 'module' }))
+let worker = new Worker('./worker.js', { type: 'module' })
+let Muff = Comlink.proxy(worker)
 
 async function init() {
-	await Muff.initialize()
-	console.log(Muff)
-	console.log(wordlist)
-
-	console.log(111)
 	wazfSample = new wazfSample(Muff)
-	console.log(112)
 	await wazfSample.Muff.setReturnListLength(20)
-	console.log(113)
 	await wazfSample.Muff.setSearchWordList(wazfSample.listToHashList(wordlist))
-	console.log(114)
 
 	wazfSample.setForm()
 	wazfSample.setToggle()
@@ -25,7 +16,7 @@ async function init() {
 
 class wazfSample {
 	constructor (Muff) {
-		this.Muff = Muff
+		this.Muff = Muff.muff
 	}
 
 	setToggle() {
@@ -36,11 +27,11 @@ class wazfSample {
 				switcher = !switcher
 				if (switcher) {
 					console.log('to JP')
-					await this.Muff.setSearchWordList(this.listToHashList(wordlistJP))
+					this.Muff.setSearchWordList(this.listToHashList(wordlistJP))
 					this.search()
 				} else {
 					console.log('to EN')
-					await this.Muff.setSearchWordList(this.listToHashList(wordlist))
+					this.Muff.setSearchWordList(this.listToHashList(wordlist))
 					this.search()
 				}
 			})()
@@ -87,7 +78,6 @@ class wazfSample {
 		}
 
 		result.forEach((result) => {
-			console.log(result)
 			let $li = document.createElement('li')
 			$li.classList.add('result-field-li')
 			let wordNode = document.createTextNode(
@@ -2925,4 +2915,6 @@ let wordlist = [
 'thirst',
 ]
 
-init()
+setTimeout(() => {
+	init()
+}, 3000)
