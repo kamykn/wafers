@@ -1,6 +1,6 @@
 {
   "name": "muff",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,7 @@
     "webpack-dev-server": "~3.1.14"
   },
   "dependencies": {
-    "muff-wasm": "^0.2.7",
+    "muff-wasm": "~0.3.1",
     "worker-plugin": "github:3846masa-tmp/worker-plugin#3.0.0-patched"
   }
 }

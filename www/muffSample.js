@@ -43,7 +43,8 @@ class wazfSample {
 		list.forEach((value, index) => {
 			hashList.push({
 				word: value,
-				index: "" + index
+				index: "" + index,
+				_ignore: 'test'
 			})
 		})
 

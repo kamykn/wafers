@@ -22,6 +22,11 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
     let mut score = 0;
 
     for (key, word) in &word_scoring.word_map {
+        // アンスコから始まるkeyは無視する
+        if key.as_str().find('_') == Some(0) {
+            continue;
+        }
+
         // すべて一致するもののみ表示する前提の上で対象から外す
         if word.len() < input_word.len() {
             continue;
