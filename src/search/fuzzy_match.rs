@@ -33,32 +33,33 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
         }
 
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-
-        // TODO: オプション化
-        let mut check_word = word.to_lowercase();
-        let (highlighted_word, score, is_match_tmp) = input_word_loop(input_word.clone(), check_word);
+        let (highlighted_word, score, is_match_tmp) = input_word_loop(input_word.clone(), word.clone());
 
         if is_match_tmp {
             is_match = is_match_tmp;
-            word_scoring.score = score;
+
+            if word_scoring.score < score {
+                word_scoring.score = score;
+            }
 
             // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
             if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
                 *mut_highlighted_word_map = highlighted_word.to_string();
             }
-
-            break;
         }
     }
 
     (word_scoring, is_match)
 }
 
-fn input_word_loop(input_word: String, check_word: String) -> (String, i32, bool) {
+fn input_word_loop(input_word: String, word: String) -> (String, i32, bool) {
     let mut score: i32 = 0;
     let mut is_match = true;
     let mut next_word_matched_at = 0;
     let mut matched_index_list: Vec<i32> = Vec::new();
+
+    // TODO: オプション化
+    let mut check_word = word.to_lowercase();
 
     for input_char in input_word.chars() {
         if input_char.is_whitespace() {
@@ -84,7 +85,7 @@ fn input_word_loop(input_word: String, check_word: String) -> (String, i32, bool
     let mut highlighted_word = "".to_string();
     if is_match {
         // match部分をhighlight用の文字列で囲んだ文字列を生成
-        highlighted_word = highlight_word(check_word, matched_index_list);
+        highlighted_word = highlight_word(word, matched_index_list);
     }
 
     (highlighted_word, score, is_match)
