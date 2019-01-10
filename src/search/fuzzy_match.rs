@@ -18,7 +18,6 @@ pub fn fuzzy_match_vec(mut word_scoring_vec: Vec<word_scoring_struct::WordScorin
 
 fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordScoring) -> (&mut super::word_scoring_struct::WordScoring, bool) {
     let mut is_match = false;
-    let mut highlighted_word = "".to_string();
     let mut score = 0;
 
     for (key, word) in &word_scoring.word_map {
@@ -30,7 +29,7 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
         let (matched_index_list, score, is_match_tmp) = input_splitted_loop(input_word.clone(), word);
 
         if is_match_tmp {
-            word_scoring.score = score;
+            word_scoring.score = word_scoring.score + score;
 
             // match部分をhighlight用の文字列で囲んだ文字列を生成
             let highlighted_word = highlight_word(word.clone(), matched_index_list);
@@ -193,10 +192,10 @@ fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: 
 fn get_score(index: i32, next_word_matched_at: i32) -> i32 {
     if index == next_word_matched_at {
         // 連続したMatchには加点
-        return 3;
+        return 6; // 2倍の3倍
     } else if index > next_word_matched_at {
         // 順番通りのMatchには加点
-        return 2;
+        return 2; // 2倍
     }
 
     // 通常加点
