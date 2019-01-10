@@ -40,10 +40,12 @@ class wazfSample {
 
 	listToHashList(list) {
 		let hashList = []
+		let revList = list.slice().reverse()
 		list.forEach((value, index) => {
 			hashList.push({
 				word: value,
 				index: "" + index,
+				rev: revList[index],
 				_ignore: 'test'
 			})
 		})
@@ -78,14 +80,18 @@ class wazfSample {
 			}
 		}
 
-		result.forEach((result) => {
+		console.log(result)
+		result.forEach((res) => {
 			let $li = document.createElement('li')
 			$li.classList.add('result-field-li')
 			let wordNode = document.createTextNode(
-				result.matches.word + 
-				'(' + result.matches.index + ') -> ' + 
-				result.highlighteds.word + 
-				'(' + result.highlighteds.index + ')' )
+				res.matches.word + 
+				'(' + res.matches.index + ') -> ' + 
+				res.highlighteds.word + 
+				'(' + res.highlighteds.index + ')' + 
+				res.matches.rev + '->' +
+				res.highlighteds.rev
+			)
 			$li.appendChild(wordNode)
 			$resultField.appendChild($li); // fragmentの追加する
 		})

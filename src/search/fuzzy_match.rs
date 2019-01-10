@@ -27,32 +27,52 @@ fn fuzzy_match(input_word: String, word_scoring: &mut word_scoring_struct::WordS
             continue;
         }
 
-        // すべて一致するもののみ表示する前提の上で対象から外す
-        if word.len() < input_word.len() {
-            continue;
-        }
-
-        // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-        let (highlighted_word, score, is_match_tmp) = input_word_loop(input_word.clone(), word.clone());
+        let (matched_index_list, score, is_match_tmp) = input_splitted_loop(input_word.clone(), word);
 
         if is_match_tmp {
-            is_match = is_match_tmp;
+            word_scoring.score = score;
 
-            if word_scoring.score < score {
-                word_scoring.score = score;
-            }
+            // match部分をhighlight用の文字列で囲んだ文字列を生成
+            let highlighted_word = highlight_word(word.clone(), matched_index_list);
 
             // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
             if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
                 *mut_highlighted_word_map = highlighted_word.to_string();
             }
+
+            is_match = true
         }
     }
 
     (word_scoring, is_match)
 }
 
-fn input_word_loop(input_word: String, word: String) -> (String, i32, bool) {
+fn input_splitted_loop(input_word: String, word: &str) -> (Vec<i32>, i32, bool) {
+    // スペース区切りで複合キー検索する
+    let mut is_match_splitted = false;
+    let mut word_scoring_splitted = 0;
+    let mut matched_index_list_splitted: Vec<i32> = Vec::new();
+
+    for input in input_word.split_whitespace() {
+        // すべて一致するもののみ表示する前提の上で対象から外す
+        if word.len() < input.len() {
+            continue;
+        }
+
+        // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
+        let (mut matched_index_list, score, is_match_tmp) = input_word_loop(input.to_string(), word.clone());
+
+        if is_match_tmp {
+            is_match_splitted = true;
+            word_scoring_splitted = word_scoring_splitted + score;
+            matched_index_list_splitted.append(&mut matched_index_list);
+        }
+    }
+
+    (matched_index_list_splitted, word_scoring_splitted, is_match_splitted)
+}
+
+fn input_word_loop(input_word: String, word: &str) -> (Vec<i32>, i32, bool) {
     let mut score: i32 = 0;
     let mut is_match = true;
     let mut next_word_matched_at = 0;
@@ -82,13 +102,7 @@ fn input_word_loop(input_word: String, word: String) -> (String, i32, bool) {
         next_word_matched_at = word_matched_at + 1;
     }
 
-    let mut highlighted_word = "".to_string();
-    if is_match {
-        // match部分をhighlight用の文字列で囲んだ文字列を生成
-        highlighted_word = highlight_word(word, matched_index_list);
-    }
-
-    (highlighted_word, score, is_match)
+    (matched_index_list, score, is_match)
 }
 
 fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> String {
