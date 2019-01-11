@@ -8,7 +8,6 @@ var Muff = {
     },
 
     setSearchWordList: function(searchWordList) {
-	console.log(111)
         this.wasm.setSearchWordList(JSON.stringify(searchWordList))
     },
 

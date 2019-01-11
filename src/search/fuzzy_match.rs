@@ -59,11 +59,12 @@ fn input_splitted_loop(input_word: String, word: &str) -> (Vec<i32>, i32, bool) 
         }
 
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-        let (matched_index_list, score, is_match_tmp) = input_word_loop(input.to_string(), word.clone(), matched_index_list.clone());
+        let (mut matched_index_list_tmp, score, is_match_tmp) = input_word_loop(input.to_string(), word.clone(), matched_index_list.clone());
 
         if is_match_tmp {
             is_match_splitted = true;
             word_scoring_splitted = word_scoring_splitted + score;
+            matched_index_list.append(&mut matched_index_list_tmp);
         }
     }
 
@@ -100,6 +101,50 @@ fn input_word_loop(input_word: String, word: &str, mut matched_index_list: Vec<i
     }
 
     (matched_index_list, score, is_match)
+}
+
+fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, matched_index_list: &Vec<i32>) -> (i32, i32, bool) {
+    let mut add_score: i32 = 1;
+    let mut index = 0;
+    let mut is_match = false;
+
+    // 最初にnext_word_matched_atを探し、matchしなければ最初から探す
+    if next_word_matched_at >= 0 {
+        let (add_score, next_word_matched_at, is_match) = match check_word.chars().nth(next_word_matched_at as usize) {
+            Some(c) => {
+                if input_char == c {
+                    add_score = get_score(next_word_matched_at, next_word_matched_at);
+                    return (add_score, next_word_matched_at, true);
+                }
+
+                (0, next_word_matched_at, false)
+            },
+            None => (0, next_word_matched_at, false)
+        };
+
+        if is_match {
+            return (add_score, next_word_matched_at, is_match);
+        }
+    }
+
+    for (i, search_char) in check_word.chars().enumerate()  {
+        index = i as i32;
+        
+        // 元のワードのindexを詰めたくないのでループ中にskipしている
+        // 次にマッチするワードはすでにチェック済みなのでcontinue
+        if matched_index_list.contains(&index) || (next_word_matched_at >= 0 && next_word_matched_at == index) {
+            continue;
+        }
+
+        // TODO FZFかなんかはスペースが来たら離れたところのほうをmatchさせるような仕様があるっぽい
+        if input_char == search_char {
+            add_score = get_score(index, next_word_matched_at);
+            is_match = true;
+            break;
+        }
+    }
+
+    (add_score, index.clone(), is_match)
 }
 
 fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> String {
@@ -143,49 +188,6 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> Strin
     highlighted_word.into_iter().collect()
 }
 
-fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, matched_index_list: &Vec<i32>) -> (i32, i32, bool) {
-    let mut add_score: i32 = 1;
-    let mut index = 0;
-    let mut is_match = false;
-
-    // 最初にnext_word_matched_atを探し、matchしなければ最初から探す
-    if next_word_matched_at >= 0 {
-        let (add_score, next_word_matched_at, is_match) =  match check_word.chars().nth(next_word_matched_at as usize) {
-            Some(c) => {
-                if input_char == c {
-                    add_score = get_score(next_word_matched_at, next_word_matched_at);
-                    return (add_score, next_word_matched_at, true);
-                }
-
-                (0, next_word_matched_at, false)
-            },
-            None => (0, next_word_matched_at, false)
-        };
-
-        if is_match {
-            return (add_score, next_word_matched_at, is_match);
-        }
-    }
-
-    for (i, search_char) in check_word.chars().enumerate()  {
-        index = i as i32;
-        
-        // 元のワードのindexを詰めたくないのでループ中にskipしている
-        // 次にマッチするワードはすでにチェック済みなのでcontinue
-        if matched_index_list.contains(&index) || (next_word_matched_at >= 0 && next_word_matched_at == index) {
-            continue;
-        }
-
-        // TODO FZFかなんかはスペースが来たら離れたところのほうをmatchさせるような仕様があるっぽい
-        if input_char == search_char {
-            add_score = get_score(index, next_word_matched_at);
-            is_match = true;
-            break;
-        }
-    }
-
-    (add_score, index.clone(), is_match)
-}
 
 fn get_score(index: i32, next_word_matched_at: i32) -> i32 {
     if index == next_word_matched_at {
