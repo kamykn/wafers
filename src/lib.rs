@@ -24,8 +24,8 @@ struct ResultData {
     highlighteds: HashMap<String, String>
 }
 
-#[wasm_bindgen]
-pub fn setSearchWordList(word_list_json: &str) {
+#[wasm_bindgen(js_name = setSearchWordList)]
+pub fn set_search_word_list(word_list_json: &str) {
     utils::set_panic_hook();
 
     search::delete_cache();
@@ -40,25 +40,27 @@ pub fn setSearchWordList(word_list_json: &str) {
     }
 }
 
-#[wasm_bindgen]
-pub fn setReturnListLength(len: u32) {
+#[wasm_bindgen(js_name = setReturnListLength)]
+pub fn set_return_list_length(len: u32) {
     utils::set_panic_hook();
 
     // 返り値としてほしい個数の設定
-    let mut return_match_list_num = search::RETURN_MATCH_LIST_NUM.lock().unwrap();
+    let mut return_match_list_num = search::RETURN_MATCH_LIST_LEN.lock().unwrap();
     *return_match_list_num = len;
 }
 
-#[wasm_bindgen]
-pub fn fuzzyMatch(search_str: &str) -> String {
+#[wasm_bindgen(js_name = fuzzyMatch)]
+pub fn fuzzy_match(search_str: &str) -> String {
     utils::set_panic_hook();
 
     let word_scoreing_list = search::fuzzy_match(search_str.to_string());
-    let mut result_list = Vec::new();
+    let mut hit_list_len = search::HIT_LIST_LEN.lock().unwrap();
+    *hit_list_len = word_scoreing_list.len() as i32;
 
     // TODO デフォルト設定用意する
-    let mut return_match_list_num = *search::RETURN_MATCH_LIST_NUM.lock().unwrap() as usize;
+    let mut return_match_list_num = *search::RETURN_MATCH_LIST_LEN.lock().unwrap() as usize;
 
+    let mut result_list = Vec::new();
     if word_scoreing_list.len() as i32 > 0 {
         if word_scoreing_list.len() < return_match_list_num {
             return_match_list_num = word_scoreing_list.len();
@@ -81,3 +83,9 @@ pub fn fuzzyMatch(search_str: &str) -> String {
 
     result_list_json
 }
+
+#[wasm_bindgen(js_name = getHitLength)]
+pub fn get_hit_length() -> i32 {
+    *search::HIT_LIST_LEN.lock().unwrap()
+}
+

@@ -8,11 +8,16 @@ var Muff = {
     },
 
     setSearchWordList: function(searchWordList) {
+	console.log(111)
         this.wasm.setSearchWordList(JSON.stringify(searchWordList))
     },
 
     search: function(inputWord) {
         return JSON.parse(this.wasm.fuzzyMatch(inputWord))
+    },
+
+    getHitLength: function() {
+        return this.wasm.getHitLength()
     }
 }
 

@@ -4,7 +4,7 @@
 
 // Magic Comments
 // FYI: https://coredump.ro/questions/50896811/vuecli-30-jsonparraypush-is-undefined-when-the-output-library-code-splits
-import("./comlink")
+import("./comlink.js")
 	.catch(e => {
 		console.error("Error importing `comlink.js`:", e)
 		console.error(e.message)

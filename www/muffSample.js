@@ -27,11 +27,11 @@ class wazfSample {
 				switcher = !switcher
 				if (switcher) {
 					console.log('to JP')
-					this.Muff.setSearchWordList(this.listToHashList(wordlistJP))
+					await this.Muff.setSearchWordList(this.listToHashList(wordlistJP))
 					this.search()
 				} else {
 					console.log('to EN')
-					this.Muff.setSearchWordList(this.listToHashList(wordlist))
+					await this.Muff.setSearchWordList(this.listToHashList(wordlist))
 					this.search()
 				}
 			})()
@@ -66,6 +66,9 @@ class wazfSample {
 
 		const result = await this.Muff.search(value)
 
+		const len = await this.Muff.getHitLength()
+		console.log(len)
+
 		const endTime = performance.now(); // 終了時間
 		console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
 
@@ -95,6 +98,7 @@ class wazfSample {
 			$li.appendChild(wordNode)
 			$resultField.appendChild($li); // fragmentの追加する
 		})
+
 
 	}
 

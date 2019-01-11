@@ -93,3 +93,10 @@ export function fuzzyMatch(arg0) {
 
 }
 
+/**
+* @returns {number}
+*/
+export function getHitLength() {
+    return wasm.getHitLength();
+}
+

@@ -18,7 +18,9 @@ lazy_static! {
     // 検索対象文字列
     pub static ref SEARCH_WORD_LIST: Mutex<Vec<word_scoring_struct::WordScoring>> = Mutex::new(vec![]);
     //  マッチした中から返す数の設定
-    pub static ref RETURN_MATCH_LIST_NUM: Mutex<u32> = Mutex::new(30);
+    pub static ref RETURN_MATCH_LIST_LEN: Mutex<u32> = Mutex::new(30);
+    //  マッチした中から返す数の設定
+    pub static ref HIT_LIST_LEN: Mutex<i32> = Mutex::new(0);
 }
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/

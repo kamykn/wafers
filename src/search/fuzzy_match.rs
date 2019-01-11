@@ -50,7 +50,7 @@ fn input_splitted_loop(input_word: String, word: &str) -> (Vec<i32>, i32, bool) 
     // スペース区切りで複合キー検索する
     let mut is_match_splitted = false;
     let mut word_scoring_splitted = 0;
-    let mut matched_index_list_splitted: Vec<i32> = Vec::new();
+    let mut matched_index_list: Vec<i32> = Vec::new();
 
     for input in input_word.split_whitespace() {
         // すべて一致するもののみ表示する前提の上で対象から外す
@@ -59,23 +59,21 @@ fn input_splitted_loop(input_word: String, word: &str) -> (Vec<i32>, i32, bool) 
         }
 
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-        let (mut matched_index_list, score, is_match_tmp) = input_word_loop(input.to_string(), word.clone());
+        let (matched_index_list, score, is_match_tmp) = input_word_loop(input.to_string(), word.clone(), matched_index_list.clone());
 
         if is_match_tmp {
             is_match_splitted = true;
             word_scoring_splitted = word_scoring_splitted + score;
-            matched_index_list_splitted.append(&mut matched_index_list);
         }
     }
 
-    (matched_index_list_splitted, word_scoring_splitted, is_match_splitted)
+    (matched_index_list, word_scoring_splitted, is_match_splitted)
 }
 
-fn input_word_loop(input_word: String, word: &str) -> (Vec<i32>, i32, bool) {
+fn input_word_loop(input_word: String, word: &str, mut matched_index_list: Vec<i32>) -> (Vec<i32>, i32, bool) {
     let mut score: i32 = 0;
     let mut is_match = true;
     let mut next_word_matched_at = 0;
-    let mut matched_index_list: Vec<i32> = Vec::new();
 
     // TODO: オプション化
     let mut check_word = word.to_lowercase();
