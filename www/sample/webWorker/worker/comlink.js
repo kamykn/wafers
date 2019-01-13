@@ -2,12 +2,15 @@ import * as Comlink from 'comlinkjs'
 import Muff from './../../../index'
 
 const wasmModule = {
-	muff: null
-};
+	async init() {
+		return await (async () => {
+			// このオブジェクトにWebAssemblyをマージして使う
+			const muff = await Muff
+			Object.assign(wasmModule, muff);
+			return Promise.resolve()
+		})()
+	}
+}
 
-(async () => {
-	wasmModule.muff = Muff
-	Comlink.expose(wasmModule, self)
-})()
-
+Comlink.expose(wasmModule, self)
 
