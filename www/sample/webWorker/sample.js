@@ -2,7 +2,7 @@ import * as Comlink from 'comlinkjs'
 // Your environment may also support transparent rewriting of commonJS to ES6:
 // import ProxyPolyfill from 'proxy-polyfill/src/proxy';
 
-let worker = new Worker('./worker.js', { type: 'module' })
+let worker = new Worker('./worker/worker', { type: 'module' })
 let Muff = Comlink.proxy(worker)
 
 async function init() {

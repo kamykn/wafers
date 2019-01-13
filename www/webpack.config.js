@@ -7,16 +7,16 @@ const path = require('path');
 module.exports = {
 	mode: "development",
 	entry: {
-		muffSample: "./muffSample.js",
+		sampleWebWorker: "./sample/webWorker/sample.js",
 	},
 	output: {
-		path: path.resolve(__dirname, "dist"),
+		path: path.resolve(__dirname, "sample/dist"),
 		filename: "[name].js",
 		globalObject: 'typeof self !== \'undefined\' ? self : this'
 	},
 	plugins: [
-		new CleanWebpackPlugin(['./dist']),
-		new CopyWebpackPlugin(['index.html']),
+		new CleanWebpackPlugin(['./sample/dist']),
+		new CopyWebpackPlugin(['sample/webWorker/sampleWebWorker.html']),
 		new WorkerPlugin(),
 	],
 	devtool: 'inline-source-map'

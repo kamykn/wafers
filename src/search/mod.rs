@@ -17,9 +17,9 @@ lazy_static! {
     pub static ref BEFORE_SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
     // 検索対象文字列
     pub static ref SEARCH_WORD_LIST: Mutex<Vec<word_scoring_struct::WordScoring>> = Mutex::new(vec![]);
-    //  マッチした中から返す数の設定
+    // マッチした中から返す数の設定
     pub static ref RETURN_MATCH_LIST_LEN: Mutex<u32> = Mutex::new(30);
-    //  マッチした中から返す数の設定
+    // マッチした数
     pub static ref HIT_LIST_LEN: Mutex<i32> = Mutex::new(0);
 }
 
