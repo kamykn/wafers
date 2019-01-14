@@ -1,16 +1,15 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const path = require('path');
- 
-module.exports = {
-  entry: './assets/index.js',
-  // output:  {
-  //   filename: 'bundle.js',
-  //   path: path.resolve(__dirname, 'dist')
-  // },
-  // devtool: 'source-map',
-  resolve: {
-    extensions: ['.js', '.wasm'],
-  },
-  plugins: [new HtmlWebpackPlugin()],
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
-}
+module.exports = {
+  entry: './index.js',
+  output: {
+    globalObject: 'self',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  plugins: [
+    new WasmPackPlugin({ crateDirectory: './crate' }),
+    new CleanWebpackPlugin(['./dist']),
+  ],
+};
