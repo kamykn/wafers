@@ -86,6 +86,7 @@ pub fn fuzzy_match(search_str: &str) -> String {
 
 #[wasm_bindgen(js_name = getHitLength)]
 pub fn get_hit_length() -> i32 {
+    utils::set_panic_hook();
     *search::HIT_LIST_LEN.lock().unwrap()
 }
 

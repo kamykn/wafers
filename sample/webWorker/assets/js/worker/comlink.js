@@ -3,12 +3,9 @@ import Muff from 'muff'
 
 const wasmModule = {
 	async init() {
-		return await (async () => {
-			// このオブジェクトにWebAssemblyをマージして使う
-			const muff = await Muff
-			Object.assign(wasmModule, muff);
-			return Promise.resolve()
-		})()
+		// このオブジェクトにWebAssemblyをマージして使う
+		await Muff.init()
+		Object.assign(wasmModule, Muff);
 	}
 }
 

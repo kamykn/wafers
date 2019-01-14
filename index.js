@@ -1,26 +1,29 @@
 const wasm = import("./crate/pkg")
 
 var Muff = {
-    wasm: null,
+	wasm: null,
 
-    setReturnListLength: function(listCount) {
-        this.wasm.setReturnListLength(listCount)
-    },
+	init: async function() {
+		Muff.wasm = await wasm
+		return Promise.resolve()
+	},
 
-    setSearchWordList: function(searchWordList) {
-        this.wasm.setSearchWordList(JSON.stringify(searchWordList))
-    },
+	setReturnListLength: function(listCount) {
+		this.wasm.setReturnListLength(listCount)
+	},
 
-    search: function(inputWord) {
-        return JSON.parse(this.wasm.fuzzyMatch(inputWord))
-    },
+	setSearchWordList: function(searchWordList) {
+		this.wasm.setSearchWordList(JSON.stringify(searchWordList))
+	},
 
-    getHitLength: function() {
-        return this.wasm.getHitLength()
-    }
+	search: function(inputWord) {
+		return JSON.parse(this.wasm.fuzzyMatch(inputWord))
+	},
+
+	getHitLength: function() {
+		return this.wasm.getHitLength()
+	}
 }
-
-Muff.wasm = wasm
 
 export default Muff
 

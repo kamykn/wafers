@@ -5,8 +5,11 @@ import { wordListEN } from '../../../words/list'
 
 class muffSample {
 	constructor (Muff) {
-		this.Muff = Muff
-		this.isInitialized = false
+		(async () => {
+			this.Muff = Muff
+			await this.Muff.init()
+			this.isInitialized = false
+		})()
 	}
 
 	init() {

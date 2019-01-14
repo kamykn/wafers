@@ -1,5 +1,5 @@
 [package]
-name = "muff-wasm"
+name = "muff"
 version = "0.3.5"
 authors = ["kamykn <to.kamykn@gmail.com>"]
 

@@ -10,6 +10,6 @@ module.exports = {
   },
   plugins: [
     new WasmPackPlugin({ crateDirectory: './crate' }),
-    new CleanWebpackPlugin(['./dist']),
+    new CleanWebpackPlugin(['./dist', './crate/pkg']),
   ],
 };
