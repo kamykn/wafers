@@ -1,5 +1,5 @@
 import * as Comlink from 'comlinkjs'
-import Muff from './../../../index'
+import Muff from 'muff'
 
 const wasmModule = {
 	async init() {

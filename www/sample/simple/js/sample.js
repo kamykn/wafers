@@ -1,10 +1,7 @@
-import * as Comlink from 'comlinkjs'
-import { wordListJP, wordListEN } from '../words/list'
+import Muff from 'muff'
+import { wordListEN } from '../../words/list'
 // Your environment may also support transparent rewriting of commonJS to ES6:
 // import ProxyPolyfill from 'proxy-polyfill/src/proxy';
-
-let worker = new Worker('./worker/worker', { type: 'module' })
-let Muff = Comlink.proxy(worker)
 
 class muffSample {
 	constructor (Muff) {
@@ -12,39 +9,19 @@ class muffSample {
 		this.isInitialized = false
 	}
 
-	async init() {
+	init() {
 		if (this.isInitialized) {
 			return
 		}
 
 		// 結果の数を設定
-		await this.Muff.init()
-		await this.Muff.setReturnListLength(20)
-		await this.Muff.setSearchWordList(this.listToHashList(wordListEN))
+		this.Muff.setReturnListLength(20)
+		this.Muff.setSearchWordList(this.listToHashList(wordListEN))
 
 		this.setForm()
 		this.setToggle()
 
 		this.isInitialized = true
-	}
-
-	setToggle() {
-		let switcher = false
-		document.getElementById("change-wordlist").addEventListener('click', () => {
-			(async () => {
-				console.log('switched')
-				switcher = !switcher
-				if (switcher) {
-					console.log('to JP')
-					await this.Muff.setSearchWordList(this.listToHashList(wordListJP))
-					this.search()
-				} else {
-					console.log('to EN')
-					await this.Muff.setSearchWordList(this.listToHashList(wordListEN))
-					this.search()
-				}
-			})()
-		})
 	}
 
 	listToHashList(list) {
@@ -68,14 +45,14 @@ class muffSample {
 		})
 	}
 
-	async search() {
+	search() {
 		const value = document.getElementById("search").value
 
 		const startTime = performance.now(); // 開始時間
 
-		const result = await this.Muff.search(value)
+		const result = this.Muff.search(value)
 
-		const len = await this.Muff.getHitLength()
+		const len = this.Muff.getHitLength()
 		console.log(len)
 
 		const endTime = performance.now(); // 終了時間
@@ -112,7 +89,10 @@ class muffSample {
 
 let Sample = new muffSample(Muff)
 
+console.log(111)
 document.getElementById("search").addEventListener("focus", function( event ) {
+console.log(112)
 	Sample.init()
 })
+
 
