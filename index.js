@@ -1,4 +1,4 @@
-const wasm = import("./crate/pkg")
+const wasm = import("./crate/pkg/muff.js")
 
 var Muff = {
 	wasm: null,

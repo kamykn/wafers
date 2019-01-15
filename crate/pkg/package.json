@@ -3,7 +3,7 @@
   "collaborators": [
     "kamykn <to.kamykn@gmail.com>"
   ],
-  "version": "0.3.5",
+  "version": "0.4.1",
   "files": [
     "muff_bg.wasm",
     "muff.js",

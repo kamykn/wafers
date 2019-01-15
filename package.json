@@ -1,10 +1,11 @@
 {
   "name": "muff",
-  "version": "0.3.6",
+  "version": "0.4.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
+    "build-sample": "for p in simple webWorker; do (cd ./sample/${p}/ && npm run build) done ",
     "start": "webpack-dev-server"
   },
   "repository": {
@@ -17,6 +18,7 @@
     "rust",
     "webpack"
   ],
+  "files": [ "crate/pkg" ],
   "author": "kamykn<to.kamykn@gmail.com>",
   "license": "(MIT OR Apache-2.0)",
   "bugs": {
