@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "build-sample": "for p in simple webWorker; do (cd ./sample/${p}/ && npm run build) done ",
+    "build-sample": "for p in `ls sample | grep -v words`; do (cd ./sample/${p}/ && npm run build) done ",
     "start": "webpack-dev-server"
   },
   "repository": {
