@@ -28,7 +28,7 @@ struct ResultData {
 pub fn set_search_word_list(word_list_json: &str) {
     utils::set_panic_hook();
 
-    search::delete_cache();
+    search::cache::delete_cache();
     let word_map_list: Vec<HashMap<String, String>> = serde_json::from_str(&word_list_json.to_string()).unwrap(); 
 
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
