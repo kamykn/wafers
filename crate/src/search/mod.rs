@@ -16,20 +16,19 @@ lazy_static! {
 }
 
 // FYI https://postd.cc/reverse-engineering-sublime-text-s-fuzzy-match/
-pub fn fuzzy_match(mut input_word: String) -> Vec<word_scoring_struct::WordScoring> {
+pub fn fuzzy_match(mut input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     // lowercase照合
     // TODO: 大文字小文字区別してマッチさせるかはオプション化させたい
-    input_word = input_word.to_lowercase();
+    input_string = input_string.to_lowercase();
 
     // 結果用変数
     let mut word_scoreing_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
-    if input_word.len() == 0 {
+    if input_string.len() == 0 {
         return word_scoreing_list;
     }
 
-    let search_word_list = cache::get_search_word_list(input_word.clone());
     // 検索
-    word_scoreing_list = fuzzy_match::fuzzy_match_vec(search_word_list, input_word.clone());
+    word_scoreing_list = fuzzy_match::search(input_string.clone());
 
     // ソート 
     // TODO: オプション化
@@ -39,7 +38,7 @@ pub fn fuzzy_match(mut input_word: String) -> Vec<word_scoring_struct::WordScori
     }
 
     // キャッシュに入れる
-    cache::push(word_scoreing_list.clone(), input_word);
+    cache::push(word_scoreing_list.clone(), input_string);
 
     word_scoreing_list
 }

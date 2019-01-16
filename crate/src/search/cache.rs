@@ -13,7 +13,6 @@ lazy_static! {
     pub static ref BEFORE_SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
 }
 
-
 // キャッシュ削除
 pub fn delete_cache() {
     SEARCH_RESULT_CACHE_LIST.lock().unwrap().truncate(0);
