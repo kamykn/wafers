@@ -37,9 +37,6 @@ pub fn fuzzy_match(mut input_string: String) -> Vec<word_scoring_struct::WordSco
         sort::sort(&mut word_scoreing_list);
     }
 
-    // キャッシュに入れる
-    cache::push(word_scoreing_list.clone(), input_string);
-
     word_scoreing_list
 }
 

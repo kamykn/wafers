@@ -5,33 +5,38 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     let mut return_word_scoreing_vec: Vec<word_scoring_struct::WordScoring> = Vec::new();
 
     for input_word in input_string.split_whitespace() {
-        let mut word_scoring_vec = cache::get_search_word_list(input_word.to_string());
+        let (mut word_scoring_vec, is_exact_match) = cache::get_search_word_list(input_word.to_string());
 
         for mut word_scoring in word_scoring_vec.iter_mut() {
             let mut matched_index_list: Vec<i32> = Vec::new();
             let mut score = 0;
             let mut is_match = false;
 
-            // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-            for (key, word) in &word_scoring.word_map {
+            // キャッシュ利用
+            if (is_exact_match) {
+                is_match = true;
+            } else {
+                // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
+                for (key, word) in &word_scoring.word_map {
 
-                // すべて一致するもののみ表示する前提の上で対象から外す
-                // アンスコから始まるkeyは無視する
-                if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
-                    continue;
-                }
+                    // すべて一致するもののみ表示する前提の上で対象から外す
+                    // アンスコから始まるkeyは無視する
+                    if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
+                        continue;
+                    }
 
-                let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word.to_string(), word, matched_index_list.clone());
+                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word.to_string(), word, matched_index_list.clone());
 
-                if is_match_tmp {
-                    is_match = is_match_tmp;
-                    word_scoring.score = word_scoring.score + score;
+                    if is_match_tmp {
+                        is_match = is_match_tmp;
+                        word_scoring.score = word_scoring.score + score;
 
-                    // match部分をhighlight用の文字列で囲んだ文字列を生成
-                    let highlighted_word = highlight_word(word.clone(), matched_index_list_tmp);
-                    // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
-                    if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
-                        *mut_highlighted_word_map = highlighted_word.to_string();
+                        // match部分をhighlight用の文字列で囲んだ文字列を生成
+                        let highlighted_word = highlight_word(word.clone(), matched_index_list_tmp);
+                        // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
+                        if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
+                            *mut_highlighted_word_map = highlighted_word.to_string();
+                        }
                     }
                 }
             }
@@ -40,6 +45,9 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                 return_word_scoreing_vec.push(word_scoring.clone());
             }
         }
+
+        // キャッシュに入れる
+        cache::push(return_word_scoreing_vec.clone(), input_string.clone());
     }
 
     return_word_scoreing_vec 
