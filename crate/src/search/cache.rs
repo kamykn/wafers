@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 use super::word_scoring_struct;
+use std::collections::HashMap;
 
 lazy_static! {
     // 今までのwordはキャッシュ持つ
@@ -19,7 +20,7 @@ pub fn delete_cache() {
     BEFORE_SEARCH_WORD_LIST.lock().unwrap().truncate(0);
 }
 
-pub fn push(word_scoreing_list: Vec<word_scoring_struct::WordScoring>, input_word: String) {
+pub fn push(word_scoreing_list: HashMap<u32, word_scoring_struct::WordScoring>, input_word: String) {
     let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
     before_search_word_list_mutex.push(input_word);
 
@@ -29,14 +30,14 @@ pub fn push(word_scoreing_list: Vec<word_scoring_struct::WordScoring>, input_wor
 
 // キャッシュを探す
 pub fn get_search_word_list(input_word: String) -> (Vec<word_scoring_struct::WordScoring>, bool) {
-    let mut search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
-    let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
+    let search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
+    let before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
 
     let mut is_cache_found = false;
     let mut cache_index = 0;
-    let mut is_exact_match = false;
+    let mut is_match_exactly = false;
 
-    if before_search_word_list_mutex.len() as i32 > 0 {
+    if before_search_word_list_mutex.len() as u32 > 0 {
         let mut input_history = String::new();
         for input_char in input_word.chars() {
             input_history.push(input_char);
@@ -45,8 +46,8 @@ pub fn get_search_word_list(input_word: String) -> (Vec<word_scoring_struct::Wor
                     cache_index = index;
                     is_cache_found = true;
 
-                    if (before_search_word == &input_word) {
-                        is_exact_match = true
+                    if before_search_word == &input_word {
+                        is_match_exactly = true
                     }
                 }
             }
@@ -61,5 +62,5 @@ pub fn get_search_word_list(input_word: String) -> (Vec<word_scoring_struct::Wor
         search_word_list = super::SEARCH_WORD_LIST.lock().unwrap().to_vec();
     }
 
-    return (search_word_list, is_exact_match)
+    return (search_word_list, is_match_exactly)
 }
