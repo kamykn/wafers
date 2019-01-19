@@ -8,7 +8,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     for input_word in input_string.split_whitespace() {
         let (mut word_scoring_vec, is_match_exactly) = cache::get_search_word_list(input_word.to_string());
 
-        for mut word_scoring in word_scoring_vec.iter_mut() {
+        for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
             let mut is_match = false;
 
             // キャッシュ利用
@@ -30,7 +30,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                     if is_match_tmp {
                         let tmp_word_scoring = return_word_scoreing_vec.get(&word_scoring.index);
                         if tmp_word_scoring.is_some() {
-                            word_scoring = &mut tmp_word_scoring.unwrap();
+                            word_scoring = &mut tmp_word_scoring.unwrap().clone();
                         }
                         word_scoring.score = word_scoring.score + score_tmp;
                         is_match = is_match_tmp;
@@ -53,11 +53,11 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
         }
 
         // キャッシュに入れる
-        cache::push(return_word_scoreing_vec.clone(), input_word.clone());
+        cache::push(return_word_scoreing_vec.clone(), input_word.to_string());
     }
 
     // HashMapからVecに変換してから返却
-    return_word_scoreing_vec.iter().map(|(_, v)| v.reference.clone()).collect()
+    return_word_scoreing_vec.iter().map(|(_, v)| v.clone()).collect()
 }
 
 fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) -> (Vec<u32>, u32, bool) {

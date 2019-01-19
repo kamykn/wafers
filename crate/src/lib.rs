@@ -4,6 +4,8 @@ extern crate serde;
 extern crate serde_json;
 extern crate cfg_if;
 extern crate wasm_bindgen;
+extern crate owning_ref;
+
 
 #[macro_use]
 extern crate serde_derive;
@@ -36,7 +38,7 @@ pub fn set_search_word_list(word_list_json: &str) {
 
     for (index, word_map) in word_map_list.iter().enumerate() {
         let word_scoring = search::word_scoring_struct::new(index as u32, word_map.clone());
-        search_word_list.push(word_scoring);
+        search_word_list.insert(index as u32, word_scoring);
     }
 }
 
@@ -58,12 +60,12 @@ pub fn fuzzy_match(search_str: &str) -> String {
     *hit_list_len = word_scoreing_list.len() as u32;
 
     // TODO デフォルト設定用意する
-    let return_match_list_num = *search::RETURN_MATCH_LIST_LEN.lock().unwrap() as u32;
+    let mut return_match_list_num = *search::RETURN_MATCH_LIST_LEN.lock().unwrap() as usize;
 
     let mut result_list = Vec::new();
     if word_scoreing_list.len() as u32 > 0 {
-        if (word_scoreing_list.len() as u32) < return_match_list_num {
-            return_match_list_num = word_scoreing_list.len() as u32;
+        if (word_scoreing_list.len()) < return_match_list_num {
+            return_match_list_num = word_scoreing_list.len();
         }
 
         // NOTE: 無駄にsliceする場合あり(全範囲返すとか)

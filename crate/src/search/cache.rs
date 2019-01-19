@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 use super::word_scoring_struct;
 use std::collections::HashMap;
+use owning_ref::MutexGuardRef;
 
 lazy_static! {
     // 今までのwordはキャッシュ持つ
@@ -9,7 +10,7 @@ lazy_static! {
     // 消される可能性があるのは単語末尾だけではない。単語真ん中もありうる。
 
     // key: 検索語のindex, value: 検索結果キャッシュ
-    pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<Vec<word_scoring_struct::WordScoring>>> = Mutex::new(vec![]);
+    pub static ref SEARCH_RESULT_CACHE_LIST: Mutex<Vec<HashMap<u32, word_scoring_struct::WordScoring>>> = Mutex::new(vec![]);
     // 検索用文字列の履歴
     pub static ref BEFORE_SEARCH_WORD_LIST: Mutex<Vec<String>> = Mutex::new(vec![]);
 }
@@ -29,7 +30,7 @@ pub fn push(word_scoreing_list: HashMap<u32, word_scoring_struct::WordScoring>, 
 }
 
 // キャッシュを探す
-pub fn get_search_word_list(input_word: String) -> (Vec<word_scoring_struct::WordScoring>, bool) {
+pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_struct::WordScoring>, bool) {
     let search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
     let before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
 
@@ -54,12 +55,12 @@ pub fn get_search_word_list(input_word: String) -> (Vec<word_scoring_struct::Wor
         }
     }
 
-    let mut search_word_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
+    let mut search_word_list: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
     if is_cache_found {
         let search_result_cache_list = search_result_cache_list_mutex.to_vec();
         search_word_list = search_result_cache_list[cache_index as usize].clone();
     } else {
-        search_word_list = super::SEARCH_WORD_LIST.lock().unwrap().to_vec();
+        search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap()).clone();
     }
 
     return (search_word_list, is_match_exactly)
