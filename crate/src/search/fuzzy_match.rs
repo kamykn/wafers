@@ -28,10 +28,12 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                     let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, word, matched_index_list.clone());
 
                     if is_match_tmp {
+                        let score = 0;
                         let tmp_word_scoring = return_word_scoreing_vec.get(&word_scoring.index);
                         if tmp_word_scoring.is_some() {
-                            word_scoring = &mut tmp_word_scoring.unwrap().clone();
+                            let word_scoring = &mut tmp_word_scoring.unwrap().clone();
                         }
+
                         word_scoring.score = word_scoring.score + score_tmp;
                         is_match = is_match_tmp;
                         matched_index_list = matched_index_list_tmp.clone();
