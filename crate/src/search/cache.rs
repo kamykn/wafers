@@ -36,7 +36,7 @@ pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_st
 
     let mut is_cache_found = false;
     let mut cache_index = 0;
-    let mut is_match_exactly = false;
+    let mut is_matching_exactly = false;
 
     if before_search_word_list_mutex.len() as u32 > 0 {
         let mut input_history = String::new();
@@ -48,7 +48,7 @@ pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_st
                     is_cache_found = true;
 
                     if before_search_word == &input_word {
-                        is_match_exactly = true
+                        is_matching_exactly = true
                     }
                 }
             }
@@ -63,5 +63,5 @@ pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_st
         search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap()).clone();
     }
 
-    return (search_word_list, is_match_exactly)
+    return (search_word_list, is_matching_exactly)
 }

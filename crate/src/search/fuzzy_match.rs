@@ -3,63 +3,87 @@ use super::cache;
 use std::collections::HashMap;
 
 pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
-    let mut return_word_scoreing_vec: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
+    let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
 
     for input_word in input_string.split_whitespace() {
-        let (mut word_scoring_vec, is_match_exactly) = cache::get_search_word_list(input_word.to_string());
+        let (mut word_scoring_vec, is_matching_exactly) = cache::get_search_word_list(input_word.to_string());
+        let mut is_match = false;
 
-        for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
-            let mut is_match = false;
+        if is_matching_exactly {
+            is_match = true;
+            // word_scoring_vecをそのままキャッシュとして使う
 
-            // キャッシュ利用
-            if is_match_exactly {
-                is_match = true;
-            } else {
+            // 1週目はそのまま全部入れる
+            if return_word_scoring_map.is_empty() {
+                return_word_scoring_map = word_scoring_vec;
+                continue;
+            }
+
+            // 2週目以降は返却リスト一回探す
+            for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
+                let return_word_scoring_option = return_word_scoring_map.get(&word_scoring.index);
+                if return_word_scoring_option.is_some() {
+                    // あればscore合算、matched_index_listをmerge
+                    let return_word_scoring = &mut return_word_scoring_option.unwrap().clone();
+                    word_scoring.score = return_word_scoring.score + word_scoring.score;
+                    return_word_scoring.matched_index_list.append(&mut word_scoring.matched_index_list);
+                } else {
+                    // なければそのままいれる
+                    return_word_scoring_map.insert(word_scoring.index, word_scoring.clone());
+                }
+            }
+        } else {
+            // 全く同じマッチがなければスコア計算はやり直す
+            for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
+                // 返却用にデータが有ればそれを使う
+                let tmp_word_scoring_option = return_word_scoring_map.get(&word_scoring.index);
+                if tmp_word_scoring_option.is_some() {
+                    word_scoring = &mut tmp_word_scoring_option.unwrap().clone();
+                }
+
                 // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
                 for (key, word) in &word_scoring.word_map {
-                    let mut matched_index_list: Vec<u32> = Vec::new();
-
                     // すべて一致するもののみ表示するので、文字数が少なければ対象から外す
                     // "_"から始まるkeyは無視する
                     if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
                         continue;
                     }
 
-                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, word, matched_index_list.clone());
+                    // マッチ済み文字の管理
+                    // TODO: 前のinput_wordでmatchしたワードのindexを除外したい
+                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, word, word_scoring.matched_index_list[word].clone());
 
                     if is_match_tmp {
-                        let score = 0;
-                        let tmp_word_scoring = return_word_scoreing_vec.get(&word_scoring.index);
-                        if tmp_word_scoring.is_some() {
-                            let word_scoring = &mut tmp_word_scoring.unwrap().clone();
-                        }
-
                         word_scoring.score = word_scoring.score + score_tmp;
-                        is_match = is_match_tmp;
-                        matched_index_list = matched_index_list_tmp.clone();
-
-                        // match部分をhighlight用の文字列で囲んだ文字列を生成
-                        let highlighted_word = highlight_word(word.clone(), matched_index_list.clone());
-                        // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
-                        if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
-                            *mut_highlighted_word_map = highlighted_word.to_string();
-                        }
+                        word_scoring.matched_index_list.insert(word, matched_index_list_tmp.clone());
+                        is_match = true;
                     }
                 }
-            }
 
-            if is_match {
-                // return_word_scoreing_vec.push(word_scoring.clone());
-                return_word_scoreing_vec.insert(word_scoring.index, word_scoring.clone());
+                if is_match {
+                    // 結果用Mapにセット
+                    return_word_scoring_map.insert(word_scoring.index, word_scoring.clone());
+                }
             }
         }
 
         // キャッシュに入れる
-        cache::push(return_word_scoreing_vec.clone(), input_word.to_string());
+        cache::push(return_word_scoring_map.clone(), input_word.to_string());
+    }
+
+    // match部分をhighlight用の文字列で囲んだ文字列を生成
+    for (key, word_scoring) in return_word_scoring_map {
+        for (key, word) in &word_scoring.word_map {
+            let highlighted_word = highlight_word(word.clone(), matched_index_list.clone());
+            // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
+            if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
+                *mut_highlighted_word_map = highlighted_word.to_string();
+            }
+        }
     }
 
     // HashMapからVecに変換してから返却
-    return_word_scoreing_vec.iter().map(|(_, v)| v.clone()).collect()
+    return_word_scoring_map.iter().map(|(_, v)| v.clone()).collect()
 }
 
 fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) -> (Vec<u32>, u32, bool) {
@@ -87,7 +111,7 @@ fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) ->
 }
 
 fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: u32, matched_index_list: &Vec<u32>) -> (u32, u32, bool) {
-    let mut add_score: u32 = 1;
+    let mut add_score: u32 = 0;
     let mut index = 0;
     let mut is_match = false;
 
