@@ -3,6 +3,8 @@ use super::word_scoring_struct;
 use std::collections::HashMap;
 use owning_ref::MutexGuardRef;
 
+use ::js_utils;
+
 lazy_static! {
     // 今までのwordはキャッシュ持つ
     // 一文字追加されただけなどの状況がわかればキャッシュの続きから検索する。
@@ -58,7 +60,11 @@ pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_st
     let mut search_word_list: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
     if is_cache_found {
         let search_result_cache_list = search_result_cache_list_mutex.to_vec();
-        search_word_list = search_result_cache_list[cache_index as usize].clone();
+        unsafe {js_utils::log(&"[here".to_string())}
+        if cache_index < search_result_cache_list.len()  {
+            search_word_list = search_result_cache_list[cache_index as usize].clone();
+        }
+        unsafe {js_utils::log(&"here]".to_string())}
     } else {
         search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap()).clone();
     }
