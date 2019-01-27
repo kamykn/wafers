@@ -7,7 +7,7 @@ pub fn new(index: u32, word_map: HashMap<String, String>) -> WordScoring {
         score: 0,
         word_map: word_map.clone(),
         highlighted_word_map: word_map, 
-        matched_index_list: HashMap::new()
+        matched_index_list_map: HashMap::new()
     }
 }
 
@@ -17,7 +17,7 @@ pub struct WordScoring {
     pub score: u32,
     pub word_map: HashMap<String, String>,
     pub highlighted_word_map: HashMap<String, String>,
-    pub matched_index_list: HashMap<String, Vec<u32>>
+    pub matched_index_list_map: HashMap<String, Vec<u32>>
 }
 
 impl PartialOrd for WordScoring {
