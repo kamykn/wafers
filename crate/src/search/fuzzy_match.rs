@@ -1,27 +1,38 @@
 use super::word_scoring_struct;
 use super::cache;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use ::js_utils;
 
 pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
-    let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
+    let mut return_word_scoring_map: &HashMap<u32, word_scoring_struct::WordScoring> = &HashMap::new();
 
-    for input_word in input_string.split_whitespace() {
+    // HashSetを使ってUnique
+    let uniq_input_word: HashSet<&str> = input_string.split_whitespace().collect();
+    for input_word in uniq_input_word.iter() {
         let (mut word_scoring_vec, is_matching_exactly) = cache::get_search_word_list(input_word.to_string());
+        unsafe {js_utils::log(&word_scoring_vec.len().to_string()[..])}
+        unsafe {js_utils::log(&word_scoring_vec.len().to_string()[..])}
 
         if is_matching_exactly {
+            unsafe {js_utils::log(input_word)}
+            unsafe {js_utils::log("exactly")}
             // word_scoring_vecをそのままキャッシュとして使う
 
             // 1週目はそのまま全部入れる
             if return_word_scoring_map.is_empty() {
-                return_word_scoring_map = word_scoring_vec;
+                unsafe {js_utils::log("rap 1")}
+                unsafe {js_utils::log(&word_scoring_vec.len().to_string()[..])}
+                return_word_scoring_map = &*word_scoring_vec;
                 continue;
             }
 
             // 2週目以降は返却リスト一回探す
+                    unsafe {js_utils::log(&word_scoring_vec.len().to_string()[..])}
             for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
                 if return_word_scoring_map.contains_key(&word_scoring.index) {
+                    // unsafe {js_utils::log("rap merge")}
                     // あればscore合算、matched_index_listをmerge
                     let return_word_scoring_option = return_word_scoring_map.get_mut(&word_scoring.index);
                     if return_word_scoring_option.is_some() {
@@ -34,6 +45,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                         }
                     }
                 } else {
+                    // unsafe {js_utils::log("rap insert")}
                     // なければそのままいれる
                     return_word_scoring_map.insert(word_scoring.index, word_scoring.clone());
                 }
@@ -81,10 +93,10 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                     return_word_scoring_map.insert(word_scoring.index, word_scoring.clone());
                 }
             }
-        }
 
-        // キャッシュに入れる
-        cache::push(return_word_scoring_map.clone(), input_word.to_string());
+            // キャッシュに入れる
+            cache::push(return_word_scoring_map.clone(), input_word.to_string());
+        }
     }
 
     // match部分をhighlight用の文字列で囲んだ文字列を生成

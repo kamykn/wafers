@@ -32,7 +32,7 @@ pub fn push(word_scoreing_list: HashMap<u32, word_scoring_struct::WordScoring>, 
 }
 
 // キャッシュを探す
-pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_struct::WordScoring>, bool) {
+pub fn get_search_word_list(input_word: String) -> (&'static mut HashMap<u32, word_scoring_struct::WordScoring>, bool) {
     let search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
     let before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
 
@@ -57,15 +57,17 @@ pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_st
         }
     }
 
-    let mut search_word_list: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
-    if is_cache_found {
-        let search_result_cache_list = search_result_cache_list_mutex.to_vec();
-        if cache_index < search_result_cache_list.len()  {
-            search_word_list = search_result_cache_list[cache_index as usize].clone();
-        }
-    } else {
-        search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap()).clone();
+    if !is_cache_found {
+        let search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap()).clone();
+        return (&mut search_word_list, is_matching_exactly);
     }
 
-    return (search_word_list, is_matching_exactly)
+    let search_result_cache_list = search_result_cache_list_mutex.to_vec();
+    if cache_index < search_result_cache_list.len()  {
+        let ref mut search_word_list = search_result_cache_list[cache_index as usize];
+        return (search_word_list, is_matching_exactly);
+    } 
+
+    let search_word_list: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
+    (&mut search_word_list, is_matching_exactly)
 }
