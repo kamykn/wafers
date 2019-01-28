@@ -6,25 +6,18 @@ use ::js_utils;
 
 pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
-    unsafe {js_utils::log(&input_string.to_string())}
 
     for input_word in input_string.split_whitespace() {
-        unsafe {js_utils::log(input_word)}
         let (mut word_scoring_vec, is_matching_exactly) = cache::get_search_word_list(input_word.to_string());
-        let mut is_match = false;
 
         if is_matching_exactly {
-            unsafe {js_utils::log(&"exactly".to_string())}
-            unsafe {js_utils::log(input_word)}
             // word_scoring_vecをそのままキャッシュとして使う
 
             // 1週目はそのまま全部入れる
             if return_word_scoring_map.is_empty() {
-                unsafe {js_utils::log(&"empty".to_string())}
                 return_word_scoring_map = word_scoring_vec;
                 continue;
             }
-            unsafe {js_utils::log(&"exist".to_string())}
 
             // 2週目以降は返却リスト一回探す
             for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
@@ -46,9 +39,9 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                 }
             }
         } else {
-            unsafe {js_utils::log(&"not exactly".to_string())}
             // 全く同じマッチがなければスコア計算はやり直す
             for (_, mut word_scoring) in word_scoring_vec.iter_mut() {
+                let mut is_match = false;
                 // 返却用にデータが有ればそれを使う
                 if return_word_scoring_map.contains_key(&word_scoring.index) {
                     let mut tmp_word_scoring_option = return_word_scoring_map.get_mut(&word_scoring.index);
@@ -61,10 +54,6 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
 
                 // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
                 for (key, word) in &word_scoring.word_map {
-                    unsafe {js_utils::log(&"key".to_string())}
-                    unsafe {js_utils::log(key)}
-                    unsafe {js_utils::log(&"word".to_string())}
-                    unsafe {js_utils::log(word)}
                     // すべて一致するもののみ表示するので、文字数が少なければ対象から外す
                     // "_"から始まるkeyは無視する
                     if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
@@ -79,10 +68,8 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                     // マッチ済み文字の管理
                     // TODO: 前のinput_wordでmatchしたワードのindexを除外したい
                     let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, word, matched_index_list_map);
-                    unsafe {js_utils::log(&"searched".to_string())}
 
                     if is_match_tmp {
-                        unsafe {js_utils::log(&"matched".to_string())}
                         word_scoring.score = word_scoring.score + score_tmp;
                         word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list_tmp.clone());
                         is_match = true;
@@ -90,13 +77,11 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                 }
 
                 if is_match {
-                    unsafe {js_utils::log(&"insert".to_string())}
                     // 結果用Mapにセット
                     return_word_scoring_map.insert(word_scoring.index, word_scoring.clone());
                 }
             }
         }
-        unsafe {js_utils::log(&"cache".to_string())}
 
         // キャッシュに入れる
         cache::push(return_word_scoring_map.clone(), input_word.to_string());
@@ -124,7 +109,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
 
 fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) -> (Vec<u32>, u32, bool) {
     let mut score: u32 = 0;
-    let mut is_match = false;
+    let mut is_match = true;
     let mut next_word_matched_at = 0;
 
     // TODO: オプション化
@@ -135,9 +120,10 @@ fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) ->
 
         if is_match_tmp {
             // マッチしない文字が存在すれば対象としない
-            is_match = true;
             score = score + add_score;
             matched_index_list.push(word_matched_at.clone());
+        } else {
+            is_match = false
         }
 
         next_word_matched_at = word_matched_at + 1;
