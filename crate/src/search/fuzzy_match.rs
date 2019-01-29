@@ -34,7 +34,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                 if return_word_scoring_map.contains_key(&word_scoring.index) {
                     // unsafe {js_utils::log("rap merge")}
                     // あればscore合算、matched_index_listをmerge
-                    let return_word_scoring_option = return_word_scoring_map.get_mut(&word_scoring.index);
+                    let return_word_scoring_option = &mut return_word_scoring_map.get_mut(&word_scoring.index);
                     if return_word_scoring_option.is_some() {
                         let return_word_scoring = &mut return_word_scoring_option.unwrap();
                         word_scoring.score = return_word_scoring.score + word_scoring.score;
@@ -65,7 +65,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                 }
 
                 // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
-                for (key, word) in &word_scoring.word_map {
+                for (key, word) in word_scoring.word_map {
                     // すべて一致するもののみ表示するので、文字数が少なければ対象から外す
                     // "_"から始まるkeyは無視する
                     if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
@@ -101,7 +101,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
 
     // match部分をhighlight用の文字列で囲んだ文字列を生成
     for (_, mut word_scoring) in return_word_scoring_map.clone() {
-        for (key, word) in &word_scoring.word_map {
+        for (key, word) in word_scoring.word_map {
             let mut matched_index_list_map = Vec::new();
             if word_scoring.matched_index_list_map.contains_key(word) {
                 matched_index_list_map = word_scoring.matched_index_list_map[word].clone()
