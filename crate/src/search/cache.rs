@@ -28,7 +28,7 @@ pub fn push(word_scoreing_list: HashMap<u32, word_scoring_struct::WordScoring>, 
     before_search_word_list_mutex.push(input_word);
 
     let mut search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
-    search_result_cache_list_mutex.push(word_scoreing_list.clone());
+    search_result_cache_list_mutex.push(word_scoreing_list);
 }
 
 // キャッシュを探す

@@ -74,8 +74,8 @@ pub fn fuzzy_match(search_str: &str) -> String {
 
         for word_scorering in sliced_word_scoreling_list {
             let result = ResultData {
-                matches: &'static mut word_scorering.word_map, 
-                highlighteds: &'static mut word_scorering.highlighted_word_map,
+                matches: *word_scorering.word_map, 
+                highlighteds: *word_scorering.highlighted_word_map,
                 score: word_scorering.score.clone()
             };
             result_list.push(result);
