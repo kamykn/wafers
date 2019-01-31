@@ -58,11 +58,11 @@ pub fn get_search_word_list(input_word: String) -> (&'static mut HashMap<u32, wo
     }
 
     if !is_cache_found {
-        let search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap()).clone();
+        let search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap());
         return (&mut search_word_list, is_matching_exactly);
     }
 
-    let search_result_cache_list = search_result_cache_list_mutex.to_vec();
+    let search_result_cache_list = search_result_cache_list_mutex;
     if cache_index < search_result_cache_list.len()  {
         let ref mut search_word_list = search_result_cache_list[cache_index as usize];
         return (search_word_list, is_matching_exactly);

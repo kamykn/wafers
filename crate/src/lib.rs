@@ -37,7 +37,7 @@ pub fn set_search_word_list(word_list_json: &str) {
     let mut search_word_list = search::SEARCH_WORD_LIST.lock().unwrap();
     search_word_list.clear();
 
-    for (index, mut word_map) in word_map_list.iter().enumerate() {
+    for (index, word_map) in word_map_list.iter().enumerate() {
         let word_scoring = search::word_scoring_struct::new(index as u32, &mut word_map);
         search_word_list.insert(index as u32, word_scoring);
     }
