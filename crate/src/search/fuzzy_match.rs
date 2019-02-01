@@ -29,7 +29,8 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                     let return_word_scoring_option = return_word_scoring_map.get(&word_scoring.index);
                     if return_word_scoring_option.is_some() {
                         let mut return_word_scoring = return_word_scoring_option.unwrap().clone();
-                        word_scoring.score = return_word_scoring.score + word_scoring.score;
+                        return_word_scoring.score = return_word_scoring.score + word_scoring.score;
+
                         for (word, matched_index_list) in &word_scoring.matched_index_list_map {
                             if let Some(return_matched_index_list) = return_word_scoring.matched_index_list_map.get_mut(word) {
                                 return_matched_index_list.append(&mut matched_index_list.clone());

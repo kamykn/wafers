@@ -24,7 +24,8 @@ use std::collections::HashMap;
 struct ResultData {
     matches: HashMap<String, String>,
     highlighteds: HashMap<String, String>,
-    score: u32
+    score: u32,
+    index: u32
 }
 
 #[wasm_bindgen(js_name = setSearchWordList)]
@@ -76,7 +77,8 @@ pub fn fuzzy_match(search_str: &str) -> String {
             let result = ResultData {
                 matches: word_scorering.word_map.clone(), 
                 highlighteds: word_scorering.highlighted_word_map.clone(),
-                score: word_scorering.score
+                score: word_scorering.score,
+                index: word_scorering.index
             };
 
             result_list.push(result);
