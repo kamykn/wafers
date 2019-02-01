@@ -23,16 +23,16 @@ pub fn delete_cache() {
     BEFORE_SEARCH_WORD_LIST.lock().unwrap().truncate(0);
 }
 
-pub fn push(word_scoreing_list: HashMap<u32, word_scoring_struct::WordScoring>, input_word: String) {
+pub fn push(word_scoreing_map: HashMap<u32, word_scoring_struct::WordScoring>, input_word: String) {
     let mut before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
     before_search_word_list_mutex.push(input_word);
 
     let mut search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
-    search_result_cache_list_mutex.push(word_scoreing_list);
+    search_result_cache_list_mutex.push(word_scoreing_map);
 }
 
 // キャッシュを探す
-pub fn get_search_word_list(input_word: String) -> (&'static mut HashMap<u32, word_scoring_struct::WordScoring>, bool) {
+pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_struct::WordScoring>, bool) {
     let search_result_cache_list_mutex = SEARCH_RESULT_CACHE_LIST.lock().unwrap();
     let before_search_word_list_mutex = BEFORE_SEARCH_WORD_LIST.lock().unwrap();
 
@@ -59,15 +59,15 @@ pub fn get_search_word_list(input_word: String) -> (&'static mut HashMap<u32, wo
 
     if !is_cache_found {
         let search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap());
-        return (&mut search_word_list, is_matching_exactly);
+        return (search_word_list.to_owned(), is_matching_exactly);
     }
 
     let search_result_cache_list = search_result_cache_list_mutex;
     if cache_index < search_result_cache_list.len()  {
-        let ref mut search_word_list = search_result_cache_list[cache_index as usize];
-        return (search_word_list, is_matching_exactly);
+        let search_word_list = &search_result_cache_list[cache_index as usize];
+        return (search_word_list.clone(), is_matching_exactly);
     } 
 
     let search_word_list: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
-    (&mut search_word_list, is_matching_exactly)
+    (search_word_list, is_matching_exactly)
 }

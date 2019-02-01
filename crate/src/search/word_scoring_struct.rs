@@ -1,16 +1,17 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-pub fn new(index: u32, word_map: &mut HashMap<String, String>) -> WordScoring {
+pub fn new(index: u32, word_map: &HashMap<String, String>) -> WordScoring {
     WordScoring{
         index: index,
         score: 0,
-        word_map: word_map,
-        highlighted_word_map: word_map, 
+        word_map: word_map.to_owned(),
+        highlighted_word_map: word_map.to_owned(), 
         matched_index_list_map: HashMap::new()
     }
 }
 
+#[derive(Clone)]
 pub struct WordScoring {
     pub index: u32,
     pub score: u32,

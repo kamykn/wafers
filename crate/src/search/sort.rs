@@ -1,10 +1,10 @@
 // rustでクイックソート(逆順)
 // FYI: https://qiita.com/chalharu/items/40b4da4d4a88d509a214
-pub fn sort<T: PartialOrd>(source: &mut [T]) {
-    fn qr_sort<TInner: PartialOrd>(source: &mut [TInner], left: usize, right: usize) {
+pub fn sort<T: PartialOrd + Clone>(source: &mut [T]) {
+    fn qr_sort<TInner: PartialOrd + Clone>(source: &mut [TInner], left: usize, right: usize) {
         // シフト演算子について
         // https://teratail.com/questions/23803#reply-37553
-        let pivot = source[(left + right) >> 1];
+        let pivot = source[(left + right) >> 1].clone();
         let mut l = left;
         let mut r = right;
 
