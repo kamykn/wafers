@@ -91,16 +91,16 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     }
 
     // match部分をhighlight用の文字列で囲んだ文字列を生成
-    for (_, mut word_scoring) in return_word_scoring_map.to_owned() {
-        for (key, word) in word_scoring.word_map {
+    for (_, ref mut word_scoring) in &mut return_word_scoring_map {
+        for (key, word) in &word_scoring.word_map {
             let mut matched_index_list_map = Vec::new();
-            if word_scoring.matched_index_list_map.contains_key(&word) {
-                matched_index_list_map = word_scoring.matched_index_list_map[&word].to_owned();
+            if word_scoring.matched_index_list_map.contains_key(word) {
+                matched_index_list_map = word_scoring.matched_index_list_map[word].to_owned();
             }
+
             let highlighted_word = highlight_word(word.to_string(), matched_index_list_map);
 
-            // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
-            if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(&key) {
+            if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
                 *mut_highlighted_word_map = highlighted_word.to_string();
             }
         }
