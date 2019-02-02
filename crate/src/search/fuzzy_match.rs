@@ -14,8 +14,9 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
         let (mut word_scoring_map, is_matching_exactly) = cache::get_search_word_list(input_word.to_string());
 
         if !is_matching_exactly {
-            let mut new_word_scoring_map = HashMap::new();
             // 全く同じマッチがなければスコア計算し直す
+            let mut new_word_scoring_map = HashMap::new();
+
             for (_, mut word_scoring) in word_scoring_map.iter_mut() {
                 let mut is_match = false;
 
@@ -34,7 +35,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                     let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, &word, matched_index_list_map);
 
                     if is_match_tmp {
-                        word_scoring.score = word_scoring.score + score_tmp;
+                        word_scoring.score = score_tmp;
                         word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list_tmp);
                         is_match = true;
                     }
@@ -57,13 +58,13 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
             continue;
         }
 
-        // 2週目以降は返却リスト一回探す
+        // 2週目以降は返却リストを探してマージ
         for (_, mut word_scoring) in word_scoring_map.iter_mut() {
             if return_word_scoring_map.contains_key(&word_scoring.index) {
                 // あればscore合算、matched_index_listをmerge
-                let return_word_scoring_option = return_word_scoring_map.get(&word_scoring.index);
+                let return_word_scoring_option = return_word_scoring_map.get_mut(&word_scoring.index);
                 if return_word_scoring_option.is_some() {
-                    let mut return_word_scoring = return_word_scoring_option.unwrap().clone();
+                    let mut return_word_scoring = return_word_scoring_option.unwrap();
                     return_word_scoring.score = return_word_scoring.score + word_scoring.score;
 
                     for (word, matched_index_list) in &word_scoring.matched_index_list_map {
@@ -74,7 +75,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                 }
             } else {
                 // なければそのままいれる
-                return_word_scoring_map.insert(word_scoring.index, word_scoring.clone());
+                return_word_scoring_map.insert(word_scoring.index, word_scoring.to_owned());
             }
         }
     }
