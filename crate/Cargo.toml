@@ -1,6 +1,6 @@
 [package]
 name = "muff"
-version = "0.4.1"
+version = "0.5.1"
 authors = ["kamykn <to.kamykn@gmail.com>"]
 
 [lib]
