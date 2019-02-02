@@ -1,92 +1,132 @@
 use super::word_scoring_struct;
 use super::cache;
+use std::collections::HashMap;
+use std::collections::HashSet;
+
+use ::js_utils;
 
 pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
-    let mut return_word_scoreing_vec: Vec<word_scoring_struct::WordScoring> = Vec::new();
+    let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
 
-    for input_word in input_string.split_whitespace() {
-        let (mut word_scoring_vec, is_exact_match) = cache::get_search_word_list(input_word.to_string());
+    // HashSetを使ってUnique
+    let uniq_input_word: HashSet<&str> = input_string.split_whitespace().collect();
+    for input_word in uniq_input_word.iter() {
+        let (mut word_scoring_map, is_matching_exactly) = cache::get_search_word_list(input_word.to_string());
 
-        for mut word_scoring in word_scoring_vec.iter_mut() {
-            let mut matched_index_list: Vec<i32> = Vec::new();
-            let mut score = 0;
-            let mut is_match = false;
+        if !is_matching_exactly {
+            // 全く同じマッチがなければスコア計算し直す
+            let mut new_word_scoring_map = HashMap::new();
 
-            // キャッシュ利用
-            if (is_exact_match) {
-                is_match = true;
-            } else {
+            for (_, mut word_scoring) in word_scoring_map.iter_mut() {
+                let mut is_match = false;
+
                 // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
                 for (key, word) in &word_scoring.word_map {
-
-                    // すべて一致するもののみ表示する前提の上で対象から外す
-                    // アンスコから始まるkeyは無視する
+                    // すべて一致するもののみ表示するので、文字数が少なければ対象から外す
+                    // "_"から始まるkeyは無視する
                     if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
                         continue;
                     }
 
-                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word.to_string(), word, matched_index_list.clone());
+                    let mut matched_index_list_map = Vec::new();
+
+                    // マッチ済み文字の管理
+                    // TODO: 前のinput_wordでmatchしたワードのindexを除外したい
+                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, &word, matched_index_list_map);
 
                     if is_match_tmp {
-                        is_match = is_match_tmp;
-                        word_scoring.score = word_scoring.score + score;
-
-                        // match部分をhighlight用の文字列で囲んだ文字列を生成
-                        let highlighted_word = highlight_word(word.clone(), matched_index_list_tmp);
-                        // https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.get_mut
-                        if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
-                            *mut_highlighted_word_map = highlighted_word.to_string();
-                        }
+                        word_scoring.score = score_tmp;
+                        word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list_tmp);
+                        is_match = true;
                     }
+                }
+
+                if is_match {
+                    // マージ用Mapにセット
+                    new_word_scoring_map.insert(word_scoring.index, word_scoring.to_owned());
                 }
             }
 
-            if is_match {
-                return_word_scoreing_vec.push(word_scoring.clone());
-            }
+            // キャッシュに入れる
+            cache::push(new_word_scoring_map.to_owned(), input_word.to_string());
+            word_scoring_map = new_word_scoring_map;
         }
 
-        // キャッシュに入れる
-        cache::push(return_word_scoreing_vec.clone(), input_string.clone());
+        // 1週目はそのまま全部入れる
+        if return_word_scoring_map.is_empty() {
+            return_word_scoring_map = word_scoring_map;
+            continue;
+        }
+
+        // 2週目以降は返却リストを探してマージ
+        for (_, mut word_scoring) in word_scoring_map.iter_mut() {
+            if return_word_scoring_map.contains_key(&word_scoring.index) {
+                // あればscore合算、matched_index_listをmerge
+                let return_word_scoring_option = return_word_scoring_map.get_mut(&word_scoring.index);
+                if return_word_scoring_option.is_some() {
+                    let mut return_word_scoring = return_word_scoring_option.unwrap();
+                    return_word_scoring.score = return_word_scoring.score + word_scoring.score;
+
+                    for (word, matched_index_list) in &word_scoring.matched_index_list_map {
+                        if let Some(return_matched_index_list) = return_word_scoring.matched_index_list_map.get_mut(word) {
+                            return_matched_index_list.append(&mut matched_index_list.clone());
+                        }
+                    }
+                }
+            } else {
+                // なければそのままいれる
+                return_word_scoring_map.insert(word_scoring.index, word_scoring.to_owned());
+            }
+        }
     }
 
-    return_word_scoreing_vec 
+    // match部分をhighlight用の文字列で囲んだ文字列を生成
+    for (_, ref mut word_scoring) in &mut return_word_scoring_map {
+        for (key, word) in &word_scoring.word_map {
+            let mut highlighted_word = word.to_string();
+
+            if word_scoring.matched_index_list_map.contains_key(word) {
+                let matched_index_list = word_scoring.matched_index_list_map[word].to_owned();
+                highlighted_word = highlight_word(word.to_string(), matched_index_list);
+            } 
+
+            if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
+                *mut_highlighted_word_map = highlighted_word.to_string();
+            }
+        }
+    }
+
+    // HashMapからVecに変換してから返却
+    return_word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect()
 }
 
-fn find_match(input_word: String, word: &str, mut matched_index_list: Vec<i32>) -> (Vec<i32>, i32, bool) {
-    let mut score: i32 = 0;
+fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) -> (Vec<u32>, u32, bool) {
+    let mut score: u32 = 0;
     let mut is_match = true;
     let mut next_word_matched_at = 0;
 
     // TODO: オプション化
-    let mut check_word = word.to_lowercase();
+    let check_word = word.to_lowercase();
 
     for input_char in input_word.chars() {
-        if input_char.is_whitespace() {
-            // 連続matchのボーナスをクリアする
-            next_word_matched_at = -1;
-            continue;
-        }
-
         let (add_score, mut word_matched_at, is_match_tmp) = input_char_loop(input_char, &check_word, next_word_matched_at, &matched_index_list);
 
-        if !is_match_tmp {
+        if is_match_tmp {
             // マッチしない文字が存在すれば対象としない
+            score = score + add_score;
+            matched_index_list.push(word_matched_at);
+        } else {
             is_match = false;
-            break;
         }
 
-        score = score + add_score;
-
-        matched_index_list.push(word_matched_at.clone());
         next_word_matched_at = word_matched_at + 1;
     }
 
     (matched_index_list, score, is_match)
 }
 
-fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: i32, matched_index_list: &Vec<i32>) -> (i32, i32, bool) {
-    let mut add_score: i32 = 1;
+fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: u32, matched_index_list: &Vec<u32>) -> (u32, u32, bool) {
+    let mut add_score: u32 = 0;
     let mut index = 0;
     let mut is_match = false;
 
@@ -110,7 +150,7 @@ fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: 
     }
 
     for (i, search_char) in check_word.chars().enumerate()  {
-        index = i as i32;
+        index = i as u32;
         
         // 元のワードのindexを詰めたくないのでループ中にskipしている
         // 次にマッチするワードはすでにチェック済みなのでcontinue
@@ -129,7 +169,7 @@ fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: 
     (add_score, index.clone(), is_match)
 }
 
-fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> String {
+fn highlight_word(check_word: String, mut matched_index_list: Vec<u32>) -> String {
     let mut highlighted_word: Vec<char> = Vec::new();
     matched_index_list.sort_unstable();
     let mut is_continuous_match = false;
@@ -139,7 +179,7 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> Strin
     let mut is_match = false;
 
     for (i, c)in check_word.chars().enumerate() {
-        let index = i as i32;
+        let index = i as u32;
         if matched_index_list.contains(&index) && !is_continuous_match {
             // 連続マッチでなければマッチしたワードの前に開始タグを追加
             for open_tag_char in  open_tag.chars() {
@@ -171,7 +211,7 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<i32>) -> Strin
 }
 
 
-fn get_score(index: i32, next_word_matched_at: i32) -> i32 {
+fn get_score(index: u32, next_word_matched_at: u32) -> u32 {
     if index == next_word_matched_at {
         // 連続したMatchには加点
         return 6; // 2倍の3倍
