@@ -57,17 +57,12 @@ pub fn get_search_word_list(input_word: String) -> (HashMap<u32, word_scoring_st
         }
     }
 
-    if !is_cache_found {
-        let search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap());
+    if is_cache_found {
+        let search_result_cache_list = search_result_cache_list_mutex;
+        let search_word_list = &search_result_cache_list[cache_index as usize];
         return (search_word_list.to_owned(), is_matching_exactly);
     }
 
-    let search_result_cache_list = search_result_cache_list_mutex;
-    if cache_index < search_result_cache_list.len()  {
-        let search_word_list = &search_result_cache_list[cache_index as usize];
-        return (search_word_list.clone(), is_matching_exactly);
-    } 
-
-    let search_word_list: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
-    (search_word_list, is_matching_exactly)
+    let search_word_list = MutexGuardRef::new(super::SEARCH_WORD_LIST.lock().unwrap());
+    (search_word_list.to_owned(), false)
 }

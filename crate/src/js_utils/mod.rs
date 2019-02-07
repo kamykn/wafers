@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 // use ::js_utils;
 // {...}
 // unsafe {js_utils::log("string")}
+// unsafe {&0.to_string()[..]}
 
 #[wasm_bindgen]
 extern {

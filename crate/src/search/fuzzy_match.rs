@@ -28,11 +28,9 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
                         continue;
                     }
 
-                    let mut matched_index_list_map = Vec::new();
-
                     // マッチ済み文字の管理
                     // TODO: 前のinput_wordでmatchしたワードのindexを除外したい
-                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, &word, matched_index_list_map);
+                    let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, &word);
 
                     if is_match_tmp {
                         word_scoring.score = score_tmp;
@@ -60,22 +58,25 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
 
         // 2週目以降は返却リストを探してマージ
         for (_, mut word_scoring) in word_scoring_map.iter_mut() {
-            if return_word_scoring_map.contains_key(&word_scoring.index) {
-                // あればscore合算、matched_index_listをmerge
-                let return_word_scoring_option = return_word_scoring_map.get_mut(&word_scoring.index);
-                if return_word_scoring_option.is_some() {
-                    let mut return_word_scoring = return_word_scoring_option.unwrap();
-                    return_word_scoring.score = return_word_scoring.score + word_scoring.score;
+            // なければそのままいれる
+            if !return_word_scoring_map.contains_key(&word_scoring.index) {
+                return_word_scoring_map.insert(word_scoring.index, word_scoring.to_owned());
+                continue;
+            }
 
-                    for (word, matched_index_list) in &word_scoring.matched_index_list_map {
-                        if let Some(return_matched_index_list) = return_word_scoring.matched_index_list_map.get_mut(word) {
-                            return_matched_index_list.append(&mut matched_index_list.clone());
-                        }
+            // あればscore合算、matched_index_listをmerge
+            if let Some(return_word_scoring) = return_word_scoring_map.get_mut(&word_scoring.index) {
+                return_word_scoring.score = return_word_scoring.score + word_scoring.score;
+
+                for (word, matched_index_list) in &word_scoring.matched_index_list_map {
+                    if !return_word_scoring.matched_index_list_map.contains_key(word) {
+                        return_word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list.to_owned());
+                    }
+
+                    if let Some(return_matched_index_list) = return_word_scoring.matched_index_list_map.get_mut(word) {
+                        return_matched_index_list.extend_from_slice(&matched_index_list);
                     }
                 }
-            } else {
-                // なければそのままいれる
-                return_word_scoring_map.insert(word_scoring.index, word_scoring.to_owned());
             }
         }
     }
@@ -83,6 +84,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     // match部分をhighlight用の文字列で囲んだ文字列を生成
     for (_, ref mut word_scoring) in &mut return_word_scoring_map {
         for (key, word) in &word_scoring.word_map {
+
             let mut highlighted_word = word.to_string();
 
             if word_scoring.matched_index_list_map.contains_key(word) {
@@ -100,16 +102,17 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     return_word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect()
 }
 
-fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) -> (Vec<u32>, u32, bool) {
+fn find_match(input_word: &str, word: &str) -> (Vec<u32>, u32, bool) {
     let mut score: u32 = 0;
     let mut is_match = true;
-    let mut next_word_matched_at = 0;
+    let mut next_word_match_at = 0;
+    let mut matched_index_list = Vec::new();
 
     // TODO: オプション化
     let check_word = word.to_lowercase();
 
     for input_char in input_word.chars() {
-        let (add_score, mut word_matched_at, is_match_tmp) = input_char_loop(input_char, &check_word, next_word_matched_at, &matched_index_list);
+        let (add_score, mut word_matched_at, is_match_tmp) = input_char_loop(input_char, &check_word, next_word_match_at, &matched_index_list);
 
         if is_match_tmp {
             // マッチしない文字が存在すれば対象としない
@@ -119,33 +122,33 @@ fn find_match(input_word: &str, word: &str, mut matched_index_list: Vec<u32>) ->
             is_match = false;
         }
 
-        next_word_matched_at = word_matched_at + 1;
+        next_word_match_at = word_matched_at + 1;
     }
 
     (matched_index_list, score, is_match)
 }
 
-fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: u32, matched_index_list: &Vec<u32>) -> (u32, u32, bool) {
+fn input_char_loop(input_char: char, check_word: &String, next_word_match_at: u32, matched_index_list: &Vec<u32>) -> (u32, u32, bool) {
     let mut add_score: u32 = 0;
     let mut index = 0;
     let mut is_match = false;
 
-    // 最初にnext_word_matched_atを探し、matchしなければ最初から探す
-    if next_word_matched_at >= 0 {
-        let (add_score, next_word_matched_at, is_match) = match check_word.chars().nth(next_word_matched_at as usize) {
+    // 最初にnext_word_match_atを探し、matchしなければ最初から探す
+    if next_word_match_at >= 0 {
+        let (add_score, next_word_match_at, is_match) = match check_word.chars().nth(next_word_match_at as usize) {
             Some(c) => {
                 if input_char == c {
-                    add_score = get_score(next_word_matched_at, next_word_matched_at);
-                    return (add_score, next_word_matched_at, true);
+                    add_score = get_score(next_word_match_at, next_word_match_at);
+                    return (add_score, next_word_match_at, true);
                 }
 
-                (0, next_word_matched_at, false)
+                (0, next_word_match_at, false)
             },
-            None => (0, next_word_matched_at, false)
+            None => (0, next_word_match_at, false)
         };
 
         if is_match {
-            return (add_score, next_word_matched_at, is_match);
+            return (add_score, next_word_match_at, is_match);
         }
     }
 
@@ -154,13 +157,13 @@ fn input_char_loop(input_char: char, check_word: &String, next_word_matched_at: 
         
         // 元のワードのindexを詰めたくないのでループ中にskipしている
         // 次にマッチするワードはすでにチェック済みなのでcontinue
-        if matched_index_list.contains(&index) || (next_word_matched_at >= 0 && next_word_matched_at == index) {
+        if matched_index_list.contains(&index) || (next_word_match_at >= 0 && next_word_match_at == index) {
             continue;
         }
 
         // TODO FZFかなんかはスペースが来たら離れたところのほうをmatchさせるような仕様があるっぽい
         if input_char == search_char {
-            add_score = get_score(index, next_word_matched_at);
+            add_score = get_score(index, next_word_match_at);
             is_match = true;
             break;
         }
@@ -211,11 +214,11 @@ fn highlight_word(check_word: String, mut matched_index_list: Vec<u32>) -> Strin
 }
 
 
-fn get_score(index: u32, next_word_matched_at: u32) -> u32 {
-    if index == next_word_matched_at {
+fn get_score(index: u32, next_word_match_at: u32) -> u32 {
+    if index == next_word_match_at {
         // 連続したMatchには加点
         return 6; // 2倍の3倍
-    } else if index > next_word_matched_at {
+    } else if index > next_word_match_at {
         // 順番通りのMatchには加点
         return 2; // 2倍
     }
