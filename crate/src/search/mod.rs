@@ -5,7 +5,6 @@ mod sort;
 mod fuzzy_match;
 pub mod cache;
 pub mod word_scoring_struct;
-pub mod byte_index_struct;
 
 lazy_static! {
     // 検索対象文字列

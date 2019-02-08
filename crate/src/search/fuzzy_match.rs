@@ -3,8 +3,6 @@ use super::cache;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use ::js_utils;
-
 pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
 
