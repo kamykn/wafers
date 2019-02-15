@@ -52,22 +52,21 @@ fn set_score_and_matched_index(mut word_scoring_map: HashMap<u32, word_scoring_s
                 continue;
             }
 
-            let matched_index_list_tmp = find_exact_match(input_word, word);
-            if matched_index_list_tmp.len() > 0 {
-                word_scoring.score = matched_index_list_tmp.len() as u32 * SCORE_NEXT_MATCH;
-                word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list_tmp);
-                is_match = true;
-                continue;
+            let mut is_match_word = false;
+            let mut score = 0;
+            let mut matched_index_list = find_exact_match(input_word, word);
+
+            if matched_index_list.len() > 0 {
+                score = matched_index_list.len() as u32 * SCORE_NEXT_MATCH;
+                is_match_word = true;
+            } else {
+                let (matched_index_list, score, is_match_word) = find_match(input_word, &word);
             }
 
-            // マッチ済み文字の管理
-            // TODO: 前のinput_wordでmatchしたワードのindexを除外したい
-            let (matched_index_list_tmp, score_tmp, is_match_tmp) = find_match(input_word, &word);
-
-            if is_match_tmp {
-                word_scoring.score = score_tmp;
-                word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list_tmp);
+            if is_match_word {
                 is_match = true;
+                word_scoring.score = score;
+                word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list);
             }
         }
 
@@ -84,9 +83,12 @@ fn find_exact_match(input_word: &str, word: &str) -> Vec<u32> {
     let mut matched_index_list_tmp = Vec::new();
 
     // findによるMatch
-    let find_index = word.find(input_word);
-    if find_index != None {
-        for i in find_index.unwrap()..input_word.len() {
+    let find_index_option = word.find(input_word);
+    if find_index_option != None {
+        let find_index = find_index_option.unwrap();
+        let start_at = find_index;
+        let end_at = find_index + input_word.len();
+        for i in start_at..end_at {
             matched_index_list_tmp.push(i as u32);
         }
     }
