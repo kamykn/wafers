@@ -3,7 +3,11 @@ use super::cache;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
+const SCORE_NEXT_MATCH: u32  = 6;
+const SCORE_AFTER_MATCH: u32 = 2;
+const SCORE_MATCH: u32       = 1;
+
+pub fn search(input_string: String) -> HashMap<u32, word_scoring_struct::WordScoring> {
     let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
 
     // HashSetを使ってUnique
@@ -29,10 +33,7 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
         merge_word_scoring_map(&mut return_word_scoring_map, &word_scoring_map);
     }
 
-    set_highlight(&mut return_word_scoring_map);
-
-    // HashMapからVecに変換してから返却
-    return_word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect()
+    return_word_scoring_map
 }
 
 fn set_score_and_matched_index(mut word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring>, 
@@ -48,6 +49,14 @@ fn set_score_and_matched_index(mut word_scoring_map: HashMap<u32, word_scoring_s
             // すべて一致するもののみ表示するので、文字数が少なければ対象から外す
             // "_"から始まるkeyは無視する
             if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
+                continue;
+            }
+
+            let matched_index_list_tmp = find_exact_match(input_word, word);
+            if matched_index_list_tmp.len() > 0 {
+                word_scoring.score = matched_index_list_tmp.len() as u32 * SCORE_NEXT_MATCH;
+                word_scoring.matched_index_list_map.insert(word.to_string(), matched_index_list_tmp);
+                is_match = true;
                 continue;
             }
 
@@ -69,6 +78,20 @@ fn set_score_and_matched_index(mut word_scoring_map: HashMap<u32, word_scoring_s
     }
 
     new_word_scoring_map
+}
+
+fn find_exact_match(input_word: &str, word: &str) -> Vec<u32> {
+    let mut matched_index_list_tmp = Vec::new();
+
+    // findによるMatch
+    let find_index = word.find(input_word);
+    if find_index != None {
+        for i in find_index.unwrap()..input_word.len() {
+            matched_index_list_tmp.push(i as u32);
+        }
+    }
+
+    matched_index_list_tmp 
 }
 
 fn merge_word_scoring_map(return_word_scoring_map: &mut HashMap<u32, word_scoring_struct::WordScoring>,
@@ -93,25 +116,6 @@ fn merge_word_scoring_map(return_word_scoring_map: &mut HashMap<u32, word_scorin
                 if let Some(return_matched_index_list) = return_word_scoring.matched_index_list_map.get_mut(word) {
                     return_matched_index_list.extend_from_slice(&matched_index_list);
                 }
-            }
-        }
-    }
-}
-
-fn set_highlight(return_word_scoring_map: &mut HashMap<u32, word_scoring_struct::WordScoring>) {
-    // match部分をhighlight用の文字列で囲んだ文字列を生成
-    for (_, ref mut word_scoring) in return_word_scoring_map {
-        for (key, word) in &word_scoring.word_map {
-
-            let mut highlighted_word = word.to_string();
-
-            if word_scoring.matched_index_list_map.contains_key(word) {
-                let matched_index_list = word_scoring.matched_index_list_map[word].to_owned();
-                highlighted_word = highlight_word(word.to_string(), matched_index_list);
-            } 
-
-            if let Some(mut_highlighted_word_map) = word_scoring.highlighted_word_map.get_mut(key) {
-                *mut_highlighted_word_map = highlighted_word.to_string();
             }
         }
     }
@@ -191,57 +195,16 @@ fn input_char_loop(input_char: char,
     (add_score, index.clone(), is_match)
 }
 
-fn highlight_word(check_word: String, mut matched_index_list: Vec<u32>) -> String {
-    let mut highlighted_word: Vec<char> = Vec::new();
-    matched_index_list.sort_unstable();
-    let mut is_continuous_match = false;
-
-    let open_tag = "<b>";
-    let close_tag = "</b>";
-    let mut is_match = false;
-
-    for (i, c)in check_word.chars().enumerate() {
-        let index = i as u32;
-        if matched_index_list.contains(&index) && !is_continuous_match {
-            // 連続マッチでなければマッチしたワードの前に開始タグを追加
-            for open_tag_char in  open_tag.chars() {
-                highlighted_word.push(open_tag_char);
-            }
-            is_match = true;
-        } else if is_continuous_match {
-            // マッチが続いている場合閉じるかチェック
-            if !matched_index_list.contains(&index) {
-                for close_tag_char in  close_tag.chars() {
-                    highlighted_word.push(close_tag_char);
-                }
-                is_match = false;
-            }
-        }
-
-        highlighted_word.push(c);
-        is_continuous_match = is_match;
-    }
-
-    if is_continuous_match {
-        // マッチが続いている場合終了タグ追加
-        for close_tag_char in  close_tag.chars() {
-            highlighted_word.push(close_tag_char);
-        }
-    }
-
-    highlighted_word.into_iter().collect()
-}
-
 
 fn get_score(index: u32, next_word_match_at: u32) -> u32 {
     if index == next_word_match_at {
         // 連続したMatchには加点
-        return 6; // 2倍の3倍
+        return SCORE_NEXT_MATCH; // 2倍の3倍
     } else if index > next_word_match_at {
         // 順番通りのMatchには加点
-        return 2; // 2倍
+        return SCORE_AFTER_MATCH; // 2倍
     }
 
     // 通常加点
-    return 1;
+    return SCORE_MATCH;
 }

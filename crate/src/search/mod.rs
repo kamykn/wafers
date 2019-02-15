@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 mod sort;
 mod fuzzy_match;
+mod highlight;
 pub mod cache;
 pub mod word_scoring_struct;
 
@@ -22,21 +23,25 @@ pub fn fuzzy_match<'word_scoring>(mut input_string: String) -> Vec<word_scoring_
     input_string = input_string.to_lowercase();
 
     // 結果用変数
-    let mut word_scoreing_list: Vec<word_scoring_struct::WordScoring> = Vec::new();
     if input_string.len() == 0 {
-        return word_scoreing_list;
+        return Vec::new();
     }
 
     // 検索
-    word_scoreing_list = fuzzy_match::search(input_string.clone());
+    let return_word_scoring_map = fuzzy_match::search(input_string.clone());
+
+    // HashMapからVecに変換
+    let mut return_word_scoring_vec: Vec<word_scoring_struct::WordScoring> = 
+            return_word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect();
 
     // ソート 
     // TODO: オプション化
-    if word_scoreing_list.len() > 1 {
+    if return_word_scoring_vec.len() > 1 {
         // TODO: スコアが低いものは早々に切ってしまいたい
-        sort::sort(&mut word_scoreing_list);
+        sort::sort(&mut return_word_scoring_vec);
     }
 
-    word_scoreing_list
+    highlight::set_highlight(&mut return_word_scoring_vec);
+    return_word_scoring_vec
 }
 
