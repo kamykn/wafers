@@ -28,20 +28,28 @@ pub fn fuzzy_match<'word_scoring>(mut input_string: String) -> Vec<word_scoring_
     }
 
     // 検索
-    let return_word_scoring_map = fuzzy_match::search(input_string.clone());
+    let word_scoring_map = fuzzy_match::search(input_string.clone());
 
     // HashMapからVecに変換
-    let mut return_word_scoring_vec: Vec<word_scoring_struct::WordScoring> = 
-            return_word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect();
+    let mut word_scoring_vec: Vec<word_scoring_struct::WordScoring> = 
+            word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect();
 
     // ソート 
-    // TODO: オプション化
-    if return_word_scoring_vec.len() > 1 {
+    if word_scoring_vec.len() > 1 {
         // TODO: スコアが低いものは早々に切ってしまいたい
-        sort::sort(&mut return_word_scoring_vec);
+        sort::sort(&mut word_scoring_vec);
+    }
+
+    let mut return_match_list_num = *RETURN_MATCH_LIST_LEN.lock().unwrap() as usize;
+
+    let mut return_word_scoring_vec = Vec::new();
+    if (word_scoring_vec.len()) > return_match_list_num {
+        return_word_scoring_vec = word_scoring_vec.drain(..return_match_list_num).collect();
+    } else {
+        return_word_scoring_vec = word_scoring_vec;
     }
 
     highlight::set_highlight(&mut return_word_scoring_vec);
-    return_word_scoring_vec
+    return_word_scoring_vec.to_owned()
 }
 
