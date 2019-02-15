@@ -22,7 +22,6 @@ pub fn fuzzy_match<'word_scoring>(mut input_string: String) -> Vec<word_scoring_
     // TODO: 大文字小文字区別してマッチさせるかはオプション化させたい
     input_string = input_string.to_lowercase();
 
-    // 結果用変数
     if input_string.len() == 0 {
         return Vec::new();
     }
@@ -34,14 +33,18 @@ pub fn fuzzy_match<'word_scoring>(mut input_string: String) -> Vec<word_scoring_
     let mut word_scoring_vec: Vec<word_scoring_struct::WordScoring> = 
             word_scoring_map.iter().map(|(_, v)| v.to_owned()).collect();
 
+    // ヒット数記憶
+    let mut hit_list_len = HIT_LIST_LEN.lock().unwrap();
+    *hit_list_len = word_scoring_vec.len() as u32;
+
     // ソート 
     if word_scoring_vec.len() > 1 {
         // TODO: スコアが低いものは早々に切ってしまいたい
         sort::sort(&mut word_scoring_vec);
     }
 
+    // 設定返却件数にslice(drain)
     let mut return_match_list_num = *RETURN_MATCH_LIST_LEN.lock().unwrap() as usize;
-
     let mut return_word_scoring_vec = Vec::new();
     if (word_scoring_vec.len()) > return_match_list_num {
         return_word_scoring_vec = word_scoring_vec.drain(..return_match_list_num).collect();
@@ -49,6 +52,7 @@ pub fn fuzzy_match<'word_scoring>(mut input_string: String) -> Vec<word_scoring_
         return_word_scoring_vec = word_scoring_vec;
     }
 
+    // ハイライトつけて返却
     highlight::set_highlight(&mut return_word_scoring_vec);
     return_word_scoring_vec.to_owned()
 }

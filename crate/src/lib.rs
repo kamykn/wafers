@@ -57,13 +57,11 @@ pub fn set_return_list_length(len: u32) {
 pub fn fuzzy_match(search_str: &str) -> String {
     utils::set_panic_hook();
 
-    let word_scoreing_vec = search::fuzzy_match(search_str.to_string());
-    let mut hit_list_len = search::HIT_LIST_LEN.lock().unwrap();
-    *hit_list_len = word_scoreing_vec.len() as u32;
+    let word_scoring_vec = search::fuzzy_match(search_str.to_string());
 
     let mut result_list = Vec::new();
-    if word_scoreing_vec.len() as u32 > 0 {
-        for word_scorering in word_scoreing_vec {
+    if word_scoring_vec.len() as u32 > 0 {
+        for word_scorering in word_scoring_vec {
             let result = ResultData {
                 matches: word_scorering.word_map.clone(), 
                 highlighteds: word_scorering.highlighted_word_map.clone(),
