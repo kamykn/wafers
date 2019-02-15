@@ -29,6 +29,7 @@ pub fn clear_with_message() {
 }
 
 pub fn abort() {
+        js_utils::log("catch aborted");
     let mut signal = get_sig_mut();
     signal = SIG_ABORT;
 }
@@ -39,5 +40,10 @@ pub fn is(check_sig: u32) -> bool {
 }
 
 pub fn is_abort() -> bool {
+    if is(SIG_ABORT) {
+        js_utils::log("yes aborted");
+    } else {
+        js_utils::log("no aborted");
+    }
     is(SIG_ABORT)
 }

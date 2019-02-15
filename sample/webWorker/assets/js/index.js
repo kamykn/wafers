@@ -73,7 +73,8 @@ class muffSample {
 
 		const startTime = performance.now(); // 開始時間
 
-		const result = await this.Muff.search(value)
+		const result = this.Muff.search(value)
+		this.Muff.abort()
 
 		const len = await this.Muff.getHitLength()
 		console.log(len)

@@ -50,9 +50,8 @@ class muffSample {
 		const value = document.getElementById("search").value
 
 		const startTime = performance.now(); // 開始時間
-
-		this.Muff.abort()
 		const result = this.Muff.search(value)
+		this.Muff.abort()
 
 		const len = this.Muff.getHitLength()
 		console.log(len)
