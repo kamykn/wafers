@@ -22,6 +22,10 @@ var Muff = {
 
 	getHitLength: function() {
 		return this.wasm.getHitLength()
+	},
+
+	abort: function() {
+		return this.wasm.abort()
 	}
 }
 

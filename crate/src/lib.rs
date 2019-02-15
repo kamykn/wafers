@@ -6,16 +6,16 @@ extern crate cfg_if;
 extern crate wasm_bindgen;
 extern crate owning_ref;
 
-
 #[macro_use]
 extern crate serde_derive;
 
 #[macro_use]
 extern crate lazy_static;
 
-mod search;
 mod utils;
 mod js_utils;
+mod signal;
+mod search;
 
 use wasm_bindgen::prelude::*;
 use std::collections::HashMap;
@@ -56,6 +56,7 @@ pub fn set_return_list_length(len: u32) {
 #[wasm_bindgen(js_name = fuzzyMatch)]
 pub fn fuzzy_match(search_str: &str) -> String {
     utils::set_panic_hook();
+    signal::clear();
 
     let word_scoreing_list = search::fuzzy_match(search_str.to_string());
     let mut hit_list_len = search::HIT_LIST_LEN.lock().unwrap();
@@ -87,6 +88,7 @@ pub fn fuzzy_match(search_str: &str) -> String {
 
     let result_list_json = serde_json::to_string(&result_list).unwrap();
 
+    signal::clear_with_message();
     result_list_json
 }
 
@@ -96,3 +98,7 @@ pub fn get_hit_length() -> u32 {
     *search::HIT_LIST_LEN.lock().unwrap()
 }
 
+#[wasm_bindgen(js_name = abort)]
+pub fn abort() {
+    signal::abort();
+}

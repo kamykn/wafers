@@ -1,7 +1,7 @@
 /* tslint:disable */
 import * as wasm from './muff_bg';
 
-let cachedTextEncoder = new TextEncoder('utf-8');
+let cachedTextDecoder = new TextDecoder('utf-8');
 
 let cachegetUint8Memory = null;
 function getUint8Memory() {
@@ -10,6 +10,17 @@ function getUint8Memory() {
     }
     return cachegetUint8Memory;
 }
+
+function getStringFromWasm(ptr, len) {
+    return cachedTextDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
+}
+
+export function __wbg_log_4dfd1f271c7d2f1a(arg0, arg1) {
+    let varg0 = getStringFromWasm(arg0, arg1);
+    console.log(varg0);
+}
+
+let cachedTextEncoder = new TextEncoder('utf-8');
 
 let WASM_VECTOR_LEN = 0;
 
@@ -44,12 +55,6 @@ export function setSearchWordList(arg0) {
 */
 export function setReturnListLength(arg0) {
     return wasm.setReturnListLength(arg0);
-}
-
-let cachedTextDecoder = new TextDecoder('utf-8');
-
-function getStringFromWasm(ptr, len) {
-    return cachedTextDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
 }
 
 let cachedGlobalArgumentPtr = null;
@@ -98,5 +103,12 @@ export function fuzzyMatch(arg0) {
 */
 export function getHitLength() {
     return wasm.getHitLength();
+}
+
+/**
+* @returns {void}
+*/
+export function abort() {
+    return wasm.abort();
 }
 

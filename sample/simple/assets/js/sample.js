@@ -51,6 +51,7 @@ class muffSample {
 
 		const startTime = performance.now(); // 開始時間
 
+		this.Muff.abort()
 		const result = this.Muff.search(value)
 
 		const len = this.Muff.getHitLength()

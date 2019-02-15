@@ -2,6 +2,7 @@ use super::word_scoring_struct;
 use super::cache;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use ::signal;
 
 pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     let mut return_word_scoring_map: HashMap<u32, word_scoring_struct::WordScoring> = HashMap::new();
@@ -9,6 +10,10 @@ pub fn search(input_string: String) -> Vec<word_scoring_struct::WordScoring> {
     // HashSetを使ってUnique
     let uniq_input_word: HashSet<&str> = input_string.split_whitespace().collect();
     for input_word in uniq_input_word.iter() {
+        if signal::is_abort() {
+            return Vec::new();
+        }
+
         let (mut word_scoring_map, is_matching_exactly) = cache::get_search_word_list(input_word.to_string());
 
         if !is_matching_exactly {
@@ -45,6 +50,10 @@ fn set_score_and_matched_index(mut word_scoring_map: HashMap<u32, word_scoring_s
 
         // 文字数が一緒なら == で比較しても良いかオプション化しても良さそう
         for (key, word) in &word_scoring.word_map {
+            if signal::is_abort() {
+                return HashMap::new();
+            }
+
             // すべて一致するもののみ表示するので、文字数が少なければ対象から外す
             // "_"から始まるkeyは無視する
             if key.as_str().find('_') == Some(0) || word.len() < input_word.len()  {
@@ -75,6 +84,10 @@ fn merge_word_scoring_map(return_word_scoring_map: &mut HashMap<u32, word_scorin
                           word_scoring_map: &HashMap<u32, word_scoring_struct::WordScoring>) {
 
     for (_, mut word_scoring) in word_scoring_map.iter() {
+        if signal::is_abort() {
+            return;
+        }
+
         // なければそのままいれる
         if !return_word_scoring_map.contains_key(&word_scoring.index) {
             return_word_scoring_map.insert(word_scoring.index, word_scoring.to_owned());

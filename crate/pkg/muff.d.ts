@@ -7,3 +7,5 @@ export function fuzzyMatch(arg0: string): string;
 
 export function getHitLength(): number;
 
+export function abort(): void;
+
