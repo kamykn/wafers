@@ -3,6 +3,8 @@ use super::cache;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use ::js_utils;
+
 const SCORE_NEXT_MATCH: u32  = 6;
 const SCORE_AFTER_MATCH: u32 = 2;
 const SCORE_MATCH: u32       = 1;
@@ -78,20 +80,34 @@ fn set_score_and_matched_index(mut word_scoring_map: HashMap<u32, word_scoring_s
 }
 
 fn find_exact_match(input_word: &str, word: &str) -> Vec<u32> {
-    let mut matched_index_list_tmp = Vec::new();
+    let mut input_nth = 0;
+    let mut matched_index_list = Vec::new();
 
-    // findによるMatch
-    let find_index_option = word.find(input_word);
-    if find_index_option != None {
-        let find_index = find_index_option.unwrap();
-        let start_at = find_index;
-        let end_at = find_index + input_word.len();
-        for i in start_at..end_at {
-            matched_index_list_tmp.push(i as u32);
+    for (i, c) in word.chars().enumerate() {
+        let input_c = input_word.chars().nth(input_nth);
+
+        // input_wordを最後まで探した
+        if input_c == None {
+            break;
         }
+
+        if c == input_c.unwrap() {
+            input_nth = input_nth + 1;
+            matched_index_list.push(i as u32);
+            continue;
+        }
+
+        // 初期化
+        input_nth = 0;
+        matched_index_list = Vec::new();
     }
 
-    matched_index_list_tmp 
+    // 中途半端に終わる場合、vecを空にする
+    if matched_index_list.len() != input_word.chars().collect::<Vec<char>>().len() {
+        matched_index_list = Vec::new();
+    }
+
+    matched_index_list 
 }
 
 fn merge_word_scoring_map(return_word_scoring_map: &mut HashMap<u32, word_scoring_struct::WordScoring>,
@@ -184,7 +200,6 @@ fn input_char_loop(input_char: char,
             continue;
         }
 
-        // TODO FZFかなんかはスペースが来たら離れたところのほうをmatchさせるような仕様があるっぽい
         if input_char == search_char {
             add_score = get_score(index, next_word_match_at);
             is_match = true;
